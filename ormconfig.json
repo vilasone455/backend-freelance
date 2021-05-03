@@ -4,13 +4,13 @@
   "url": "postgres://smoptxxl:1-Y1kNncEMyFgP-cDffLKf7cZAzbd4Jj@satao.db.elephantsql.com:5432/smoptxxl",
   "synchronize": true,
   "entities": [
-    "src/entity/*.js"
+    "dist/entity/*.js"
   ],
   "subscribers": [
-    "src/subscriber/*.js"
+    "dist/subscriber/*.js"
   ],
   "migrations": [
-    "src/migration/*.js"
+    "dist/migration/*.js"
   ],
   "cli": {
     "entitiesDir": "src/entity",

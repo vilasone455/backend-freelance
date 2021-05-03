@@ -6,7 +6,7 @@ import DataStoredInToken from '../interfaces/dataStoredInToken';
 import RequestWithUser from '../interfaces/requestWithUser.interface';
 import {User} from '../entity/User';
 import { getRepository } from 'typeorm';
-import { secretKey } from '../../env';
+import { secretKey } from '../env';
 
 
 async function authMiddleware(request: RequestWithUser, response: Response, next: NextFunction) {

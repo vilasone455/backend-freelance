@@ -13,7 +13,7 @@ import {CreateUserDto} from '../dto/CreateUser.dto'
 import AuthenticationService from './authentication.service';
 import LogInDto from './logIn.dto';
 import { getRepository } from 'typeorm';
-import { secretKey } from '../../env';
+import { secretKey } from "../env";
 
 class AuthenticationController implements Controller {
   public path = '/auth';
