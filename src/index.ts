@@ -1,4 +1,4 @@
-import "reflect-metadata";
+
 import {createConnection} from "typeorm";
 import {Request, Response} from "express";
 import * as express from "express";
@@ -20,6 +20,8 @@ createConnection().then(async connection => {
     const app = express();
     app.use(cors)
     app.use(bodyParser.json());
+
+
 
     console.log(process.env.PORT)
 
