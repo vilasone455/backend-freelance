@@ -4,7 +4,7 @@ import Controller from '../interfaces/controller.interface';
 
 import {Profile} from '../entity/Profile';
 import UserNotFoundException from '../exceptions/UserNotFoundException';
-import { getConnection, getRepository } from 'typeorm';
+import {  getRepository } from 'typeorm';
 import { User } from '../entity/User';
 import { Address } from '../entity/Address';
 import { GeneralProfile } from '../entity/GeneralProfile';
@@ -29,12 +29,51 @@ class ProfileController implements Controller {
   private initializeRoutes() {
     this.router.get(`${this.path}/:id` ,  this.getUserById);
     this.router.get(`${this.path}` ,  this.getAllProject);
-    this.router.get(`${this.path}/tests` ,  this.testUser);
+    this.router.put(`${this.path}/:id/:field` ,  this.updateProfile);
     this.router.post(`${this.path}/:id` ,  this.newProfile);
   }
 
-  private testUser  = async (request: Request, response: Response, next: NextFunction) => {
 
+  private updateProfile  = async (request: Request, response: Response, next: NextFunction) => {
+    const userId = request.params.id
+    const field = request.params.field
+    const user = await this.userRespotity.findOne({relations: ["profile" , "profile.address" , "profile.generalProfile" , "profile.workExs" , "profile.educations" , "profile.skills" , "profile.portfilios"] , where : {id : Number(userId)}})
+    
+    let profile : Profile = request.body;
+  
+    if(user){
+      //update only want change for optimize 
+      if(field === "address"){
+        const addressRes = getRepository(Address)
+        const newAddress = await addressRes.save(profile.address)
+        profile.address = newAddress
+      }else if(field === "general"){
+        const generalRes = getRepository(GeneralProfile)
+        const general = await generalRes.save(profile.generalProfile)
+        profile.generalProfile = general
+      }else if(field === "workexs"){
+        const workExRes = getRepository(WorkEx)
+        const workExs = await workExRes.save(profile.workExs)
+        profile.workExs = workExs
+     
+      }else if(field === "portfilios"){
+        const portfilioRes = getRepository(Portfilio)
+        const portfilios = await portfilioRes.save(profile.portfilios)
+        profile.portfilios = portfilios
+    
+      } else if(field === "educations"){
+        const educationRes = getRepository(Education)
+        const educations = await educationRes.save(profile.educations)
+        profile.educations = educations
+      }
+
+      const rs = await this.profileRespotity.save(profile)
+
+      response.status(200).send(rs)
+
+  }else {
+    next(new UserNotFoundException(userId));
+  }
     response.status(200).send("test")
   }
 
@@ -59,16 +98,8 @@ class ProfileController implements Controller {
         const workExs = await workExRes.save(profile.workExs)
         const skills = await skillRes.save(profile.skills)
         const educations = await educationRes.save(profile.educations)
+        const portfilios = await portfilioRes.save(profile.portfilios)
 
-        //
-        const portfilios : Portfilio[] = []
-        profile.portfilios.forEach(async p=>{
-          const images = await portfilioImageRes.save(p.portfilioImages)
-          p.portfilioImages = images
-          const port = await portfilioRes.save(p)
-          portfilios.push(port)
-        })
-        //
 
         profile.address = newAddress
         profile.generalProfile = newGeneral

@@ -4,6 +4,7 @@ import { Education } from "./Education";
 import { GeneralProfile } from "./GeneralProfile";
 import { Portfilio } from "./Portfilio";
 import { Skill } from "./Skill";
+import { User } from "./User";
 import { WorkEx } from "./WorkEx";
 
 @Entity()
@@ -11,8 +12,7 @@ export class Profile {
 
     @PrimaryGeneratedColumn()
     id: number;
-
-    @OneToOne(() => GeneralProfile)
+    @OneToOne(() => GeneralProfile , g=>g.profile)
     @JoinColumn()
     generalProfile: GeneralProfile;
 

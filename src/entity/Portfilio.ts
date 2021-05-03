@@ -1,6 +1,6 @@
 import {Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany} from "typeorm";
 import { Profile } from "./Profile";
-import {PortfilioImage} from './PortfilioImage'
+
 @Entity()
 export class Portfilio {
 
@@ -25,7 +25,7 @@ export class Portfilio {
     @Column()
     end: string;
 
-    @OneToMany(() => PortfilioImage, p => p.portfilio)
-    portfilioImages: PortfilioImage[];
+    @Column({default:""})
+    portfilioImages: string;
 
 }

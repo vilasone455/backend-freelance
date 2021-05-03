@@ -8,29 +8,31 @@ import Controller from './interfaces/controller.interface';
 import UserController from './controller/UserController'
 import AuthenticationController from "./authentication/authentication.controller";
 import ProfileController from "./controller/ProfileController";
+import JobPostController from "./controller/JobPostController";
+import * as cors from "cors";
 
 // create connection with database
 // note that it's not active database connection
 // TypeORM creates connection pools and uses them for your requests
-createConnection().then(async connection => {
 
+createConnection().then(async connection => {
     // create express app
     const app = express();
+    app.use(cors)
     app.use(bodyParser.json());
+
+    console.log(process.env.PORT)
 
     let controllers : Controller[] = [
         new UserController(),
         new AuthenticationController(),
-        new ProfileController()
+        new ProfileController(),
+        new JobPostController()
     ]
     
     controllers.forEach((controller) => {
         app.use('/', controller.router);
     });
-
-    // run app
     app.listen(3000);
-
     console.log("Express application is up and running on port 3000");
-
 }).catch(error => console.log("TypeORM connection error: ", error));

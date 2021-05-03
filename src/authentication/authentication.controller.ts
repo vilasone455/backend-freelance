@@ -13,6 +13,7 @@ import {CreateUserDto} from '../dto/CreateUser.dto'
 import AuthenticationService from './authentication.service';
 import LogInDto from './logIn.dto';
 import { getRepository } from 'typeorm';
+import { secretKey } from '../../env';
 
 class AuthenticationController implements Controller {
   public path = '/auth';
@@ -26,7 +27,7 @@ class AuthenticationController implements Controller {
 
   private initializeRoutes() {
     this.router.post(`${this.path}/register`, validationMiddleware(CreateUserDto), this.registration);
-    this.router.post(`${this.path}/login`, validationMiddleware(LogInDto), this.loggingIn);
+    this.router.post(`${this.path}/login`, this.loggingIn);
     this.router.post(`${this.path}/logout`, this.loggingOut);
   }
 
@@ -47,9 +48,11 @@ class AuthenticationController implements Controller {
   private loggingIn = async (request: Request, response: Response, next: NextFunction) => {
     const logInData: LogInDto = request.body;
     const user = await this.userResposity.findOne({ userEmail: logInData.userEmail });
-
+    console.log("start login")
     if (user) {
+      console.log("have user")
       const isPasswordMatching = await bcrypt.compare(logInData.userPassword, user.userPassword)
+      console.log(isPasswordMatching)
       if (isPasswordMatching) {
         const tokenData = this.createToken(user);
         response.setHeader('Set-Cookie', [this.createCookie(tokenData)]);
@@ -73,7 +76,7 @@ class AuthenticationController implements Controller {
 
   private createToken(user: User): TokenData {
     const expiresIn = 60 * 60; // an hour
-    const secret = process.env.JWT_SECRET;
+    const secret = secretKey;
     const dataStoredInToken: DataStoredInToken = {
       _id: user.id,
     };
