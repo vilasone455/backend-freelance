@@ -9,7 +9,6 @@ const User_1 = require("../entity/User");
 const CreateUser_dto_1 = require("../dto/CreateUser.dto");
 const authentication_service_1 = require("./authentication.service");
 const typeorm_1 = require("typeorm");
-const env_1 = require("../env");
 class AuthenticationController {
     constructor() {
         this.path = '/auth';
@@ -64,7 +63,7 @@ class AuthenticationController {
     }
     createToken(user) {
         const expiresIn = 60 * 60;
-        const secret = env_1.secretKey;
+        const secret = process.env.SECRET_KEY;
         const dataStoredInToken = {
             _id: user.id,
         };

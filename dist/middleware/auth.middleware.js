@@ -5,11 +5,10 @@ const AuthenticationTokenMissingException_1 = require("../exceptions/Authenticat
 const WrongAuthenticationTokenException_1 = require("../exceptions/WrongAuthenticationTokenException");
 const User_1 = require("../entity/User");
 const typeorm_1 = require("typeorm");
-const env_1 = require("../env");
 async function authMiddleware(request, response, next) {
     const auth = request.headers["authorization"];
     if (auth) {
-        const secret = env_1.secretKey;
+        const secret = process.env.SECRET_KEY;
         const userRepository = typeorm_1.getRepository(User_1.User);
         try {
             const verificationResponse = jwt.verify(auth, secret);

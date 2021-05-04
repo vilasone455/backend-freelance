@@ -38,7 +38,7 @@ class AuthenticationService {
 
   public createToken(user: User): TokenData {
     const expiresIn = 60 * 60; // an hour
-    const secret = "freelance-6@!467^-x&H@(&";
+    const secret = process.env.SECRET_KEY;
     const dataStoredInToken: DataStoredInToken = {
       _id: user.id,
     };

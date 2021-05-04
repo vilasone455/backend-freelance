@@ -1,21 +1,39 @@
 
 import {createConnection} from "typeorm";
-import {Request, Response} from "express";
+
 import * as express from "express";
 import * as bodyParser from "body-parser";
-import {AppRoutes} from "./routes";
+
 import Controller from './interfaces/controller.interface';
 import UserController from './controller/UserController'
 import AuthenticationController from "./authentication/authentication.controller";
 import ProfileController from "./controller/ProfileController";
 import JobPostController from "./controller/JobPostController";
-import * as cors from "cors";
 
-// create connection with database
-// note that it's not active database connection
-// TypeORM creates connection pools and uses them for your requests
+import "./initenv"
 
-createConnection().then(async connection => {
+const config : any = {
+    "name": "default",
+    "type": "postgres",
+    "url": process.env.DATABASE_URL,
+    "synchronize": true,
+    "entities": [
+      "dist/entity/*.js"
+    ],
+    "subscribers": [
+      "dist/subscriber/*.js"
+    ],
+    "migrations": [
+      "dist/migration/*.js"
+    ],
+    "cli": {
+      "entitiesDir": "src/entity",
+      "migrationsDir": "src/migration",
+      "subscribersDir": "src/subscriber"
+    }
+}
+
+createConnection(config).then(async connection => {
     // create express app
     const app = express();
 
@@ -28,10 +46,6 @@ createConnection().then(async connection => {
     });
 
     app.use(bodyParser.json());
-
-
-
-    console.log(process.env.PORT)
 
     let controllers : Controller[] = [
         new UserController(),

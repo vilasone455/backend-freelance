@@ -121,11 +121,6 @@
         "signature": "d2f31f19e1ba6ed59be9259d660a239d9a3fcbbc8e038c6b2009bde34b175fed",
         "affectsGlobalScope": false
       },
-      "../src/env.ts": {
-        "version": "b4cf228865d28f864a65e6bcbc812545c7a74203629c622a99c0d039a5b4507c",
-        "signature": "6697bb3be1ead5b5c693669f2dd120150f6adc2287581a17cedb82c6e91c6df2",
-        "affectsGlobalScope": false
-      },
       "../node_modules/reflect-metadata/index.d.ts": {
         "version": "8d6d51a5118d000ed3bfe6e1dd1335bebfff3fef23cd2af2f84a24d30f90cc90",
         "signature": "8d6d51a5118d000ed3bfe6e1dd1335bebfff3fef23cd2af2f84a24d30f90cc90",
@@ -1836,11 +1831,6 @@
         "signature": "3b05c396564e51753e921e1cc4aae1cf7cd9be53c891cf2e81fa29f11c0bd373",
         "affectsGlobalScope": false
       },
-      "../src/routes.ts": {
-        "version": "378420ce538244fa359f1143e7521fd5f2d3141849e25d4f95c4aa4c5148aee0",
-        "signature": "c43b916c9c570d51cf905d640625e279622f84359d8c51c2120e0780c2206ca1",
-        "affectsGlobalScope": false
-      },
       "../src/interfaces/controller.interface.ts": {
         "version": "559607ac4d4421737a749ba3f61509593d3c33dc613d8623cff29b93e4fe0514",
         "signature": "ddd46ad7335b5e4fcbb8cf10c75e18185d53877cbd361232dbd241faf609f9fb",
@@ -2702,7 +2692,7 @@
         "affectsGlobalScope": false
       },
       "../src/authentication/authentication.service.ts": {
-        "version": "d2e68d7772287fe9c1d94ef684be64fca3adaec525bc9566725f18b9817e56d4",
+        "version": "2fd811c714f070115cc74de9a33ec15b9b0b4c1e1ac67437efb6aaeb31a6f19f",
         "signature": "3f71c8ee248cd6965fbc080a90bed597770baaa8810a19e7f3a60916eef16f10",
         "affectsGlobalScope": false
       },
@@ -2712,7 +2702,7 @@
         "affectsGlobalScope": false
       },
       "../src/authentication/authentication.controller.ts": {
-        "version": "3f903f51a0a6e50686f3133f7de14c1e439aba303f0dc4a6274906e2510f3bd4",
+        "version": "6558f5469b31422f905be909664162b06e1d923a6c7de46c237a094efaab4f7b",
         "signature": "996562a1e32f7512521201b74249d1f52834bd8921bc2dad445e51ad46ecab03",
         "affectsGlobalScope": false
       },
@@ -2742,7 +2732,7 @@
         "affectsGlobalScope": false
       },
       "../src/middleware/auth.middleware.ts": {
-        "version": "46855dfe8597a504bc4c54633ad36482b330645bcdb7312bee7c3aec97f60491",
+        "version": "99c1f5fb4b3fcd5e223443cdcd857a23867bc9b8b0f83647189b901a0913094f",
         "signature": "ff028f3b5a3802522681f325649364dfac3fced35afc32a779a3eab3d33fa72f",
         "affectsGlobalScope": false
       },
@@ -2756,14 +2746,24 @@
         "signature": "f636d164db7b83865e6d36530339512ac07b5e069495819399b477b0ee4e73ec",
         "affectsGlobalScope": false
       },
-      "../node_modules/@types/cors/index.d.ts": {
-        "version": "a68969f643e0cb091046a9437b64cb1880a081fc07c70a4717b0edef2a38bc85",
-        "signature": "a68969f643e0cb091046a9437b64cb1880a081fc07c70a4717b0edef2a38bc85",
+      "../node_modules/dotenv/types/index.d.ts": {
+        "version": "c9ae0b351a07b52f29a28e869d8c7c8d29743bbb5eeddc7c0b5b2a69a2450528",
+        "signature": "c9ae0b351a07b52f29a28e869d8c7c8d29743bbb5eeddc7c0b5b2a69a2450528",
+        "affectsGlobalScope": false
+      },
+      "../src/initenv.ts": {
+        "version": "176bc1361bae062efb14253549ae32504ac3cc96180e2caad5458faa7524cab0",
+        "signature": "f761c91419d0a89422a0004ef1a92929dd4d2d5e5c16758654d8b0467d1998c6",
         "affectsGlobalScope": false
       },
       "../src/index.ts": {
-        "version": "cf88c44078175353543d13f50c3759ebfad283798fbb9b6040a613ce7d23ab82",
-        "signature": "f761c91419d0a89422a0004ef1a92929dd4d2d5e5c16758654d8b0467d1998c6",
+        "version": "2447cead011844b3510983569b3917b6a4ac658235113b237c646c8be0781f97",
+        "signature": "33c4361395b392e3da525ca18c20f2bfe733e69912c892258e10a705efe56655",
+        "affectsGlobalScope": false
+      },
+      "../src/routes.ts": {
+        "version": "378420ce538244fa359f1143e7521fd5f2d3141849e25d4f95c4aa4c5148aee0",
+        "signature": "c43b916c9c570d51cf905d640625e279622f84359d8c51c2120e0780c2206ca1",
         "affectsGlobalScope": false
       },
       "../src/exceptions/notauthorizedexception.ts": {
@@ -2779,6 +2779,11 @@
       "../src/middleware/logger.middleware.ts": {
         "version": "23b76f455c8d930d609abb8df0faed41955e7311f95578c0142aaa5ac13de031",
         "signature": "59d56e1230586c0b90ce5280cec54fe9b1683e7bc70e7ee66b2bf153faa1a073",
+        "affectsGlobalScope": false
+      },
+      "../node_modules/@types/cors/index.d.ts": {
+        "version": "a68969f643e0cb091046a9437b64cb1880a081fc07c70a4717b0edef2a38bc85",
+        "signature": "a68969f643e0cb091046a9437b64cb1880a081fc07c70a4717b0edef2a38bc85",
         "affectsGlobalScope": false
       },
       "../node_modules/@types/zen-observable/index.d.ts": {
@@ -3763,6 +3768,10 @@
         "../node_modules/class-validator/types/validation/validationarguments.d.ts"
       ],
       "../node_modules/class-validator/types/validation/validatoroptions.d.ts": [
+        "../node_modules/@types/node/base.d.ts",
+        "../node_modules/@types/node/index.d.ts"
+      ],
+      "../node_modules/dotenv/types/index.d.ts": [
         "../node_modules/@types/node/base.d.ts",
         "../node_modules/@types/node/index.d.ts"
       ],
@@ -6060,7 +6069,6 @@
         "../src/authentication/login.dto.ts",
         "../src/dto/createuser.dto.ts",
         "../src/entity/user.ts",
-        "../src/env.ts",
         "../src/exceptions/wrongcredentialsexception.ts",
         "../src/interfaces/controller.interface.ts",
         "../src/interfaces/datastoredintoken.ts",
@@ -6192,10 +6200,6 @@
         "../node_modules/typeorm/index.d.ts",
         "../src/entity/profile.ts"
       ],
-      "../src/env.ts": [
-        "../node_modules/@types/node/base.d.ts",
-        "../node_modules/@types/node/index.d.ts"
-      ],
       "../src/exceptions/authenticationtokenmissingexception.ts": [
         "../node_modules/@types/node/base.d.ts",
         "../node_modules/@types/node/index.d.ts",
@@ -6237,7 +6241,6 @@
       ],
       "../src/index.ts": [
         "../node_modules/@types/body-parser/index.d.ts",
-        "../node_modules/@types/cors/index.d.ts",
         "../node_modules/@types/express/index.d.ts",
         "../node_modules/@types/node/base.d.ts",
         "../node_modules/@types/node/index.d.ts",
@@ -6246,8 +6249,13 @@
         "../src/controller/jobpostcontroller.ts",
         "../src/controller/profilecontroller.ts",
         "../src/controller/usercontroller.ts",
-        "../src/interfaces/controller.interface.ts",
-        "../src/routes.ts"
+        "../src/initenv.ts",
+        "../src/interfaces/controller.interface.ts"
+      ],
+      "../src/initenv.ts": [
+        "../node_modules/@types/node/base.d.ts",
+        "../node_modules/@types/node/index.d.ts",
+        "../node_modules/dotenv/types/index.d.ts"
       ],
       "../src/interfaces/controller.interface.ts": [
         "../node_modules/@types/express/index.d.ts",
@@ -6274,7 +6282,6 @@
         "../node_modules/@types/node/index.d.ts",
         "../node_modules/typeorm/index.d.ts",
         "../src/entity/user.ts",
-        "../src/env.ts",
         "../src/exceptions/authenticationtokenmissingexception.ts",
         "../src/exceptions/wrongauthenticationtokenexception.ts",
         "../src/interfaces/datastoredintoken.ts",
@@ -7266,6 +7273,10 @@
         "../node_modules/class-validator/types/validation/validationarguments.d.ts"
       ],
       "../node_modules/class-validator/types/validation/validatoroptions.d.ts": [
+        "../node_modules/@types/node/base.d.ts",
+        "../node_modules/@types/node/index.d.ts"
+      ],
+      "../node_modules/dotenv/types/index.d.ts": [
         "../node_modules/@types/node/base.d.ts",
         "../node_modules/@types/node/index.d.ts"
       ],
@@ -9630,6 +9641,9 @@
       "../src/exceptions/wrongcredentialsexception.ts": [
         "../src/exceptions/httpexception.ts"
       ],
+      "../src/index.ts": [
+        "../src/initenv.ts"
+      ],
       "../src/interfaces/controller.interface.ts": [
         "../node_modules/@types/express/index.d.ts"
       ],
@@ -9817,6 +9831,7 @@
       "../node_modules/class-validator/types/validation/validator.d.ts",
       "../node_modules/class-validator/types/validation/validatorconstraintinterface.d.ts",
       "../node_modules/class-validator/types/validation/validatoroptions.d.ts",
+      "../node_modules/dotenv/types/index.d.ts",
       "../node_modules/libphonenumber-js/index.d.ts",
       "../node_modules/libphonenumber-js/types.d.ts",
       "../node_modules/reflect-metadata/index.d.ts",
@@ -10191,7 +10206,6 @@
       "../src/entity/skill.ts",
       "../src/entity/user.ts",
       "../src/entity/workex.ts",
-      "../src/env.ts",
       "../src/exceptions/authenticationtokenmissingexception.ts",
       "../src/exceptions/httpexception.ts",
       "../src/exceptions/notauthorizedexception.ts",
@@ -10201,6 +10215,7 @@
       "../src/exceptions/wrongauthenticationtokenexception.ts",
       "../src/exceptions/wrongcredentialsexception.ts",
       "../src/index.ts",
+      "../src/initenv.ts",
       "../src/interfaces/controller.interface.ts",
       "../src/interfaces/datastoredintoken.ts",
       "../src/interfaces/requestwithuser.interface.ts",

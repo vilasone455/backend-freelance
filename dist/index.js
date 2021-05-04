@@ -7,7 +7,28 @@ const UserController_1 = require("./controller/UserController");
 const authentication_controller_1 = require("./authentication/authentication.controller");
 const ProfileController_1 = require("./controller/ProfileController");
 const JobPostController_1 = require("./controller/JobPostController");
-typeorm_1.createConnection().then(async (connection) => {
+require("./initenv");
+const config = {
+    "name": "default",
+    "type": "postgres",
+    "url": process.env.DATABASE_URL,
+    "synchronize": true,
+    "entities": [
+        "dist/entity/*.js"
+    ],
+    "subscribers": [
+        "dist/subscriber/*.js"
+    ],
+    "migrations": [
+        "dist/migration/*.js"
+    ],
+    "cli": {
+        "entitiesDir": "src/entity",
+        "migrationsDir": "src/migration",
+        "subscribersDir": "src/subscriber"
+    }
+};
+typeorm_1.createConnection(config).then(async (connection) => {
     const app = express();
     app.use(function (req, res, next) {
         res.header("Access-Control-Allow-Origin", "*");
@@ -22,7 +43,6 @@ typeorm_1.createConnection().then(async (connection) => {
         }
     });
     app.use(bodyParser.json());
-    console.log(process.env.PORT);
     let controllers = [
         new UserController_1.default(),
         new authentication_controller_1.default(),
