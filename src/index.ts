@@ -57,6 +57,6 @@ createConnection(config).then(async connection => {
     controllers.forEach((controller) => {
         app.use('/', controller.router);
     });
-    app.listen(3000);
+    app.listen(process.env.PORT || 3000);
     console.log("Express application is up and running on port 3000");
 }).catch(error => console.log("TypeORM connection error: ", error));
