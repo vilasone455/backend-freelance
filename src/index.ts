@@ -40,7 +40,7 @@ createConnection(config).then(async connection => {
     app.use(function( req, res, next ) {
         res.header("Access-Control-Allow-Origin", "*");
         res.header('Access-Control-Allow-Methods: GET, POST, "PUT" , OPTIONS');
-        res.header("Access-Control-Allow-Headers", "x-requested-with, content-type" , "Authorization");
+        res.header("Access-Control-Allow-Headers", "x-requested-with, content-type , authorization" );
         res.header("Access-Control-Allow-Credentials", "true");
         if ('OPTIONS' == req.method) { res.send(200); } else { next(); } 
     });
