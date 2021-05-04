@@ -55,8 +55,7 @@ class AuthenticationController implements Controller {
       console.log(isPasswordMatching)
       if (isPasswordMatching) {
         const tokenData = this.createToken(user);
-        response.setHeader('Set-Cookie', [this.createCookie(tokenData)]);
-        response.send(user);
+        response.send({...user , token : tokenData});
       } else {
         next(new WrongCredentialsException());
       }
