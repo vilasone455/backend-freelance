@@ -46,6 +46,7 @@
     "typeorm": "^0.2.0"
   },
   "scripts": {
+    "postinstall" : "tsc",
     "start": "tsc && node dist/index.js"
   }
 }
