@@ -12,9 +12,9 @@ export class ServiceFaq  {
     question: string;
 
     @Column()
-    answer: number;
+    answer: string;
 
-    @ManyToOne(() => Service, s=>s.serviceFags)
+    @ManyToOne(() => Service, s=>s.serviceFaqs)
     service: Service;
 
 }

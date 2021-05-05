@@ -10,13 +10,14 @@ import BadPermissionExpections from '../exceptions/BadPermissionExpection';
 import { User } from '../entity/User';
 import UserNotFoundException from '../exceptions/UserNotFoundException';
 import WrongAuthenticationTokenException from '../exceptions/WrongAuthenticationTokenException';
+import { ServicePackage } from '../entity/ServicePackage';
+import { ServiceFaq } from '../entity/ServiceFaq';
 
 class ServiceController implements Controller {
   public path = '/service';
   public router = Router();
 
   private serviceRespotity = getRepository(Service);
-  private userRespotity = getRepository(User);
 
   constructor() {
     this.initializeRoutes();
@@ -47,8 +48,21 @@ class ServiceController implements Controller {
   }
 
   private getAllService = async (request: Request, response: Response, next: NextFunction) => {
-    const services = await this.serviceRespotity.find({relations : ["user"]})
+    const services = await this.serviceRespotity.find({relations : ["user" , "servicePackages" , "serviceFaqs"]})
     response.send(services)
+  }
+
+  private async saveService(service : Service) {
+    const servicePackageRes = getRepository(ServicePackage)
+    const serviceFaqRes = getRepository(ServiceFaq)
+
+    const packages = await servicePackageRes.save(service.servicePackages)
+    const faq = await serviceFaqRes.save(service.serviceFaqs)
+
+    service.serviceFaqs = faq
+    service.servicePackages = packages
+    const rs = await this.serviceRespotity.save(service)
+    return rs
   }
 
   private updateService = async (request: RequestWithUser, response: Response, next: NextFunction) => {
@@ -63,7 +77,8 @@ class ServiceController implements Controller {
     const isHavePermission = userServices.find(s=>s.id === service.id)
     if(isHavePermission === null) next(new BadPermissionExpections());
 
-    const rs = await this.serviceRespotity.save(service)
+    const rs = await this.saveService(service)
+
     response.send(rs)
   }
 
@@ -74,16 +89,8 @@ class ServiceController implements Controller {
     if(user.id !== service.user.id){
       next(new WrongAuthenticationTokenException())
     } 
-    
-    if(user){
-      const serviceAdd = await this.serviceRespotity.save(service)
-      user.services = [serviceAdd]
-      await this.userRespotity.save(user)
-      response.send(serviceAdd)
-    }else{
-      next(new UserNotFoundException(user.id.toString()))
-    }
-    
+    const rs = this.saveService(service)
+    response.send(rs)
   }
 
   private removeService = async (request: RequestWithUser, response: Response, next: NextFunction) => {

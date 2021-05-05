@@ -33,6 +33,6 @@ export class Service {
     serviceReviews : ServiceReview[]
 
     @OneToMany(() => ServiceFaq , s=>s.service )
-    serviceFags : ServiceFaq[]
+    serviceFaqs : ServiceFaq[]
 
 }
