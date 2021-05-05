@@ -12,7 +12,10 @@ import { WorkEx } from '../entity/WorkEx';
 import { Skill } from '../entity/Skill';
 import { Education } from '../entity/Education';
 import { Portfilio } from '../entity/Portfilio';
-import { PortfilioImage } from '../entity/PortfilioImage';
+
+import RequestWithUser from '../interfaces/requestWithUser.interface';
+import authMiddleware from '../middleware/auth.middleware';
+import BadPermissionExpections from '../exceptions/BadPermissionExpection';
 
 class ProfileController implements Controller {
   public path = '/profile';
@@ -29,18 +32,22 @@ class ProfileController implements Controller {
   private initializeRoutes() {
     this.router.get(`${this.path}/:id` ,  this.getUserById);
     this.router.get(`${this.path}` ,  this.getAllProject);
-    this.router.put(`${this.path}/:id/:field` ,  this.updateProfile);
-    this.router.post(`${this.path}/:id` ,  this.newProfile);
+    this.router.put(`${this.path}/:id/:field` , authMiddleware , this.updateProfile);
+    this.router.post(`${this.path}` ,  this.newProfile);
   }
 
 
-  private updateProfile  = async (request: Request, response: Response, next: NextFunction) => {
-    const userId = request.params.id
-    const field = request.params.field
-    const user = await this.userRespotity.findOne({relations: ["profile" , "profile.address" , "profile.generalProfile" , "profile.workExs" , "profile.educations" , "profile.skills" , "profile.portfilios"] , where : {id : Number(userId)}})
-    
+  private updateProfile  = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     let profile : Profile = request.body;
-  
+    const profileId = request.params.id
+    const field = request.params.field
+    //const user = await this.userRespotity.findOne({relations: ["profile" , "profile.address" , "profile.generalProfile" , "profile.workExs" , "profile.educations" , "profile.skills" , "profile.portfilios"] , where : {id : Number(userId)}})
+    const user = await this.userRespotity.findOne({profile:{id:Number(profileId)}})
+
+    if(profile.id !== Number(profileId)) response.status(400).send("wrong id")
+
+    if(user.id !== request.user.id) next(new BadPermissionExpections())
+
     if(user){
       //update only want change for optimize 
       if(field === "address"){
@@ -72,15 +79,15 @@ class ProfileController implements Controller {
       response.status(200).send(rs)
 
   }else {
-    next(new UserNotFoundException(userId));
+    next(new UserNotFoundException(profileId));
   }
     response.status(200).send("test")
   }
 
-  private newProfile = async (request: Request, response: Response, next: NextFunction) => {
-    const userId = request.params.id
-    const user = await this.userRespotity.findOne({id:Number(userId)})
-    let profile : Profile = request.body;
+  private newProfile = async (request: RequestWithUser, response: Response, next: NextFunction) => {
+
+    const user = request.user
+    let profile : Profile = request.body
 
     const addressRes = getRepository(Address)
     const generalRes = getRepository(GeneralProfile)
@@ -89,8 +96,7 @@ class ProfileController implements Controller {
     const educationRes = getRepository(Education)
 
     const portfilioRes = getRepository(Portfilio)
-    const portfilioImageRes = getRepository(PortfilioImage)
-
+   
     if(user){
   
         const newAddress = await addressRes.save(profile.address)
@@ -115,7 +121,7 @@ class ProfileController implements Controller {
 
         response.status(200).send(rs)
     }else {
-      next(new UserNotFoundException(userId));
+      next(new UserNotFoundException(user.id.toString()));
     }
 
     }
@@ -125,13 +131,6 @@ class ProfileController implements Controller {
       console.log(users.length)
       response.send(users)
   }
-
-  private getProfile = async (request: Request, response: Response, next: NextFunction) => {
-    var userId = request.params.id
-    //const profileResposity = getRepository()
-    //var profile = 
-    //response.send(users)
-}
 
   private getUserById = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
