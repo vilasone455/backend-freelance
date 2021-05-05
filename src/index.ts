@@ -11,6 +11,7 @@ import ProfileController from "./controller/ProfileController";
 import JobPostController from "./controller/JobPostController";
 
 import "./initenv"
+import ServiceController from "./controller/ServiceController";
 
 const config : any = {
     "name": "default",
@@ -51,7 +52,8 @@ createConnection(config).then(async connection => {
         new UserController(),
         new AuthenticationController(),
         new ProfileController(),
-        new JobPostController()
+        new JobPostController(),
+        new ServiceController()
     ]
     
     controllers.forEach((controller) => {
