@@ -3,17 +3,20 @@ import { Router, Request, Response, NextFunction } from 'express';
 import Controller from '../interfaces/controller.interface';
 import {  getRepository, Repository } from 'typeorm';
 
-import { Service } from 'src/entity/Service';
-import authMiddleware from 'src/middleware/auth.middleware';
-import RequestWithUser from 'src/interfaces/requestWithUser.interface';
-import BadPermissionExpections from 'src/exceptions/BadPermissionExpection';
-import { BaseTable } from 'src/entity/BaseTable';
+import {Service} from '../entity/Service'
+import authMiddleware from "../middleware/auth.middleware";
+import RequestWithUser from '../interfaces/requestWithUser.interface'
+import BadPermissionExpections from '../exceptions/BadPermissionExpection';
+import { User } from '../entity/User';
+import UserNotFoundException from '../exceptions/UserNotFoundException';
+import WrongAuthenticationTokenException from '../exceptions/WrongAuthenticationTokenException';
 
 class ServiceController implements Controller {
   public path = '/service';
   public router = Router();
 
   private serviceRespotity = getRepository(Service);
+  private userRespotity = getRepository(User);
 
   constructor() {
     this.initializeRoutes();
@@ -28,7 +31,9 @@ class ServiceController implements Controller {
   }
 
   private async isHavePermission<T>(respotity : Repository<T> , userId : number , updateId : number) {
-    const rs  = await respotity.find({where:{"userId" : userId}})
+    const rs  = await respotity.find({where:{"user" : {
+      "id" : userId
+    }}})
     const ishave = rs.find(r=>r["id"] === updateId)
     if(ishave === null) console.log("dont have")
     console.log(rs)
@@ -42,7 +47,7 @@ class ServiceController implements Controller {
   }
 
   private getAllService = async (request: Request, response: Response, next: NextFunction) => {
-    const services = await this.serviceRespotity.find()
+    const services = await this.serviceRespotity.find({relations : ["user"]})
     response.send(services)
   }
 
@@ -64,8 +69,21 @@ class ServiceController implements Controller {
 
   private newService = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     const service : Service = request.body
-    const rs = await this.serviceRespotity.save(service)
-    response.send(rs)
+    const user = request.user
+
+    if(user.id !== service.user.id){
+      next(new WrongAuthenticationTokenException())
+    } 
+    
+    if(user){
+      const serviceAdd = await this.serviceRespotity.save(service)
+      user.services = [serviceAdd]
+      await this.userRespotity.save(user)
+      response.send(serviceAdd)
+    }else{
+      next(new UserNotFoundException(user.id.toString()))
+    }
+    
   }
 
   private removeService = async (request: RequestWithUser, response: Response, next: NextFunction) => {

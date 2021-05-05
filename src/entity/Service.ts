@@ -1,5 +1,5 @@
 import {Entity, PrimaryGeneratedColumn, Column, OneToOne,  OneToMany, ManyToOne} from "typeorm";
-import { BaseTable } from "./BaseTable";
+
 import { ServicePackage } from "./ServicePackage";
 import { ServiceReview } from "./ServiceReview";
 import {ServiceFaq} from './ServiceFaq'
@@ -16,6 +16,9 @@ export class Service {
 
     @Column()
     serviceDescription: string;
+
+    @Column({default : ""})
+    serviceImages: string;
 
     @Column()
     typeJob: string;

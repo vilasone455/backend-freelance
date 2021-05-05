@@ -9,9 +9,10 @@ import UserController from './controller/UserController'
 import AuthenticationController from "./authentication/authentication.controller";
 import ProfileController from "./controller/ProfileController";
 import JobPostController from "./controller/JobPostController";
+import ServiceController from "./controller/ServiceController";
 
 import "./initenv"
-import ServiceController from "./controller/ServiceController";
+
 
 const config : any = {
     "name": "default",
@@ -35,7 +36,7 @@ const config : any = {
 }
 
 createConnection(config).then(async connection => {
-    // create express app
+
     const app = express();
 
     app.use(function( req, res, next ) {

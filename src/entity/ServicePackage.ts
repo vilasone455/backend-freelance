@@ -1,5 +1,5 @@
 import {Entity, PrimaryGeneratedColumn, Column,  ManyToOne} from "typeorm";
-import { BaseTable } from "./BaseTable";
+
 import { Service } from "./Service";
 
 @Entity()
