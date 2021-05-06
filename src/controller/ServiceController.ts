@@ -25,6 +25,7 @@ class ServiceController implements Controller {
 
   private initializeRoutes() {
     this.router.get(`${this.path}` , this.getAllService);
+    this.router.get(`${this.path}/:id` , this.getService);
     this.router.post(`${this.path}/test/:id` , authMiddleware , this.testService);
     this.router.post(`${this.path}` , authMiddleware , this.newService);
     this.router.put(`${this.path}/:id` , authMiddleware , this.updateService);
@@ -47,8 +48,13 @@ class ServiceController implements Controller {
     response.send("ss")
   }
 
+  private getService = async (request: Request, response: Response, next: NextFunction) => {
+    const services = await this.serviceRespotity.findOne({relations : ["user" , "servicePackages" , "serviceFaqs" , "user.profile" , "user.profile.generalProfile" , "user.profile.address" ]})
+    response.send(services)
+  }
+
   private getAllService = async (request: Request, response: Response, next: NextFunction) => {
-    const services = await this.serviceRespotity.find({relations : ["user" , "servicePackages" , "serviceFaqs"]})
+    const services = await this.serviceRespotity.find({relations : ["user" , "user.profile" , "user.profile.generalProfile" ]})
     response.send(services)
   }
 

@@ -23,6 +23,9 @@ export class Service {
     @Column()
     typeJob: string;
 
+    @Column({default : 0})
+    startPrice : number;
+
     @ManyToOne(() => User , u => u.services)
     user: User;
 
