@@ -47,8 +47,10 @@ class AuthenticationController implements Controller {
 
   private loggingIn = async (request: Request, response: Response, next: NextFunction) => {
     const logInData: LogInDto = request.body;
+    console.log(logInData)
     const user = await this.userResposity.findOne({ userEmail: logInData.userEmail });
     console.log("start login")
+    console.log(user)
     if (user) {
       console.log("have user")
       const isPasswordMatching = await bcrypt.compare(logInData.userPassword, user.userPassword)
