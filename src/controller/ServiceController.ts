@@ -54,7 +54,7 @@ class ServiceController implements Controller {
   }
 
   private getAllService = async (request: Request, response: Response, next: NextFunction) => {
-    const services = await this.serviceRespotity.find({relations : ["user" , "user.profile" , "user.profile.generalProfile" ]})
+    const services = await this.serviceRespotity.find({relations : ["user" , "user.profile" , "user.profile.generalProfile"  ]})
     response.send(services)
   }
 

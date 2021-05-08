@@ -13,6 +13,7 @@ import {CreateUserDto} from '../dto/CreateUser.dto'
 import AuthenticationService from './authentication.service';
 import LogInDto from './logIn.dto';
 import { getRepository } from 'typeorm';
+import BadPermissionExpections from '../exceptions/BadPermissionExpection';
 
 
 class AuthenticationController implements Controller {
@@ -26,9 +27,26 @@ class AuthenticationController implements Controller {
   }
 
   private initializeRoutes() {
+    this.router.post(`${this.path}/admin-register/:appkey`, validationMiddleware(CreateUserDto), this.registrationAdmin);
     this.router.post(`${this.path}/register`, validationMiddleware(CreateUserDto), this.registration);
     this.router.post(`${this.path}/login`, this.loggingIn);
     this.router.post(`${this.path}/logout`, this.loggingOut);
+  }
+
+  private registrationAdmin = async (request: Request, response: Response, next: NextFunction) => {
+    const key = request.params.appkey
+    if(key !== process.env.SECRET_KEY) next(new BadPermissionExpections())
+    const userData: CreateUserDto = request.body;
+    try {
+      const {
+        cookie,
+        user,
+      } = await this.authenticationService.register(userData , true);
+
+      response.send(user);
+    } catch (error) {
+      next(error);
+    }
   }
 
   private registration = async (request: Request, response: Response, next: NextFunction) => {

@@ -19,8 +19,8 @@ export class User {
     @Column()
     userPassword: string;
 
-    @Column({default : ""})
-    userType: string;
+    @Column({default : 1})
+    userType: number;
 
     @OneToOne(() => Profile)
     @JoinColumn()

@@ -12,13 +12,17 @@ import { getRepository } from 'typeorm';
 class AuthenticationService {
   public userRepository = getRepository(User);
 
-  public async register(userData: CreateUserDto) {
+  public async register(userData: CreateUserDto , isAdmin : boolean = false) {
 
     if (
       await this.userRepository.findOne({ userEmail: userData.userEmail })
     ) {
       throw new UserWithThatEmailAlreadyExistsException(userData.userEmail);
     }
+    if(isAdmin == false){
+      if(userData.userType === 3) userData.userType = 1
+    }
+
     const hashedPassword = await bcrypt.hash(userData.userPassword, 10);
     const user = await this.userRepository.save({
       ...userData,

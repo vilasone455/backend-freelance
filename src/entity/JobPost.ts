@@ -1,4 +1,6 @@
-import {Entity, PrimaryGeneratedColumn, Column, ManyToOne} from "typeorm";
+import {Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToOne, JoinColumn} from "typeorm";
+import { Category } from "./Category";
+import { SubCategory } from "./SubCategory";
 import { User } from "./User";
 
 @Entity()
@@ -13,8 +15,11 @@ export class JobPost {
     @Column()
     title: string;
 
-    @Column()
-    typeJob: string;
+    @ManyToOne(() => Category, c=>c.jobPosts)
+    category: Category;
+
+    @ManyToOne(() => SubCategory, s=>s.jobPosts)
+    subCategory: SubCategory;
 
     @Column()
     postDate: string;

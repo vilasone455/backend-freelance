@@ -34,30 +34,15 @@ class JobPostController implements Controller {
 
     const post : JobPost = request.body
     const user = request.user
-    const generalRes = getRepository(GeneralProfile)
-    const skillRes = getRepository(Skill)
 
     post.user = user
-
-    const users = await generalRes.find({ relations: ["profile" , "profile.user"],
-        where : {
-                    "jobType" : post.typeJob
-        }
-    } )
-
-    /*
-    const skills = post.skillRequires.split(",")
-    const skillUsers = skillRes.find({where : {
-        "skillName" : In(skills)
-    },})
-    */
 
     await this.jobPostRespotity.save(post)
     response.send(post)
   }
 
   private getAllJob = async (request: Request, response: Response, next: NextFunction) => {
-      const rs = await this.jobPostRespotity.find({ relations: ["user"] })
+      const rs = await this.jobPostRespotity.find({ relations: ["user","category","subCategory"] })
       response.send(rs)
   }
 

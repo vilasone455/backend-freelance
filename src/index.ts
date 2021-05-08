@@ -10,7 +10,7 @@ import AuthenticationController from "./authentication/authentication.controller
 import ProfileController from "./controller/ProfileController";
 import JobPostController from "./controller/JobPostController";
 import ServiceController from "./controller/ServiceController";
-
+import CategoryController from "./controller/CategoryController";
 import "./initenv"
 
 
@@ -54,7 +54,8 @@ createConnection(config).then(async connection => {
         new AuthenticationController(),
         new ProfileController(),
         new JobPostController(),
-        new ServiceController()
+        new ServiceController(),
+        new CategoryController()
     ]
     
     controllers.forEach((controller) => {

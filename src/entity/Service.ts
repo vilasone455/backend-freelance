@@ -1,9 +1,11 @@
-import {Entity, PrimaryGeneratedColumn, Column, OneToOne,  OneToMany, ManyToOne} from "typeorm";
+import {Entity, PrimaryGeneratedColumn, Column, OneToOne,  OneToMany, ManyToOne, JoinColumn} from "typeorm";
 
 import { ServicePackage } from "./ServicePackage";
 import { ServiceReview } from "./ServiceReview";
 import {ServiceFaq} from './ServiceFaq'
 import { User } from "./User";
+import { Category } from "./Category";
+import { SubCategory } from "./SubCategory";
 
 @Entity()
 export class Service {
@@ -20,8 +22,13 @@ export class Service {
     @Column({default : ""})
     serviceImages: string;
 
-    @Column()
-    typeJob: string;
+    @OneToOne(() => Category)
+    @JoinColumn()
+    category: Category;
+
+    @OneToOne(() => SubCategory)
+    @JoinColumn()
+    subCategory: SubCategory;
 
     @Column({default : 0})
     startPrice : number;
