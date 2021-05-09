@@ -17,6 +17,9 @@ export class ServicePackage {
     @Column()
     packagePrice: number;
 
+    @Column({default : 1})
+    workTime: number;
+
     @ManyToOne(() => Service, s=>s.servicePackages)
     service: Service;
 

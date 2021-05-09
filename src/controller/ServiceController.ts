@@ -49,7 +49,7 @@ class ServiceController implements Controller {
   }
 
   private getService = async (request: Request, response: Response, next: NextFunction) => {
-    const services = await this.serviceRespotity.findOne({relations : ["user" , "servicePackages" , "serviceFaqs" , "user.profile" , "user.profile.generalProfile" , "user.profile.address" ]})
+    const services = await this.serviceRespotity.findOne({relations : ["user" , "category" , "subCategory" , "serviceFaqs" , "user.profile" , "user.profile.generalProfile" , "user.profile.address" ]})
     response.send(services)
   }
 

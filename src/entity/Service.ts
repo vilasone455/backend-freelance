@@ -33,6 +33,9 @@ export class Service {
     @Column({default : 0})
     startPrice : number;
 
+    @Column({default : ""})
+    procedure : string;
+
     @ManyToOne(() => User , u => u.services)
     user: User;
 
