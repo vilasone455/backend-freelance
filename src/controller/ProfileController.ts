@@ -33,7 +33,7 @@ class ProfileController implements Controller {
     this.router.get(`${this.path}/:id` ,  this.getUserById);
     this.router.get(`${this.path}` ,  this.getAllProject);
     this.router.put(`${this.path}/:id/:field` , authMiddleware , this.updateProfile);
-    this.router.post(`${this.path}` ,  this.newProfile);
+    this.router.post(`${this.path}` , authMiddleware , this.newProfile);
   }
 
 
