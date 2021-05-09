@@ -7,8 +7,9 @@ import DataStoredInToken from '../interfaces/dataStoredInToken';
 import TokenData from '../interfaces/tokenData.interface';
 import validationMiddleware from '../middleware/validation.middleware';
 
-import {User} from '../entity/User';
-import {CreateUserDto} from '../dto/CreateUser.dto'
+import { Profile } from '../entity/Profile';
+import { User } from '../entity/User';
+import { CreateUserDto } from '../dto/CreateUser.dto'
 
 import AuthenticationService from './authentication.service';
 import LogInDto from './logIn.dto';
@@ -35,13 +36,13 @@ class AuthenticationController implements Controller {
 
   private registrationAdmin = async (request: Request, response: Response, next: NextFunction) => {
     const key = request.params.appkey
-    if(key !== process.env.SECRET_KEY) next(new BadPermissionExpections())
+    if (key !== process.env.SECRET_KEY) next(new BadPermissionExpections())
     const userData: CreateUserDto = request.body;
     try {
       const {
         cookie,
         user,
-      } = await this.authenticationService.register(userData , true);
+      } = await this.authenticationService.register(userData, true);
 
       response.send(user);
     } catch (error) {
@@ -56,8 +57,10 @@ class AuthenticationController implements Controller {
         cookie,
         user,
       } = await this.authenticationService.register(userData);
-      response.setHeader('Set-Cookie', [cookie]);
-      response.send(user);
+      
+      const tokenData = this.createToken(user)
+      
+      response.send({...user , tokenData});
     } catch (error) {
       next(error);
     }
@@ -67,7 +70,7 @@ class AuthenticationController implements Controller {
     console.log(request.body)
     const logInData: LogInDto = request.body;
     console.log(logInData)
-    const user = await this.userResposity.findOne({ relations: ["profile", "profile.address", "profile.generalProfile", "profile.workExs", "profile.portfilios"] , where : {userEmail : logInData.userEmail} })
+    const user = await this.userResposity.findOne({ relations: ["profile", "profile.address", "profile.generalProfile", "profile.workExs", "profile.portfilios"], where: { userEmail: logInData.userEmail } })
     console.log("start login")
     console.log(user)
     if (user) {
@@ -77,7 +80,7 @@ class AuthenticationController implements Controller {
       if (isPasswordMatching) {
         const tokenData = this.createToken(user);
 
-        response.send({...user, tokenData});
+        response.send({ ...user, tokenData });
 
       } else {
         next(new WrongCredentialsException());
