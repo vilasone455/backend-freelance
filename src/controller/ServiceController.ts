@@ -7,11 +7,11 @@ import {Service} from '../entity/Service'
 import authMiddleware from "../middleware/auth.middleware";
 import RequestWithUser from '../interfaces/requestWithUser.interface'
 import BadPermissionExpections from '../exceptions/BadPermissionExpection';
-import { User } from '../entity/User';
-import UserNotFoundException from '../exceptions/UserNotFoundException';
+
 import WrongAuthenticationTokenException from '../exceptions/WrongAuthenticationTokenException';
 import { ServicePackage } from '../entity/ServicePackage';
 import { ServiceFaq } from '../entity/ServiceFaq';
+import { ServiceStep } from '../entity/ServiceStep';
 
 class ServiceController implements Controller {
   public path = '/service';
@@ -49,7 +49,7 @@ class ServiceController implements Controller {
   }
 
   private getService = async (request: Request, response: Response, next: NextFunction) => {
-    const services = await this.serviceRespotity.findOne({relations : ["user" , "category" , "subCategory" , "serviceFaqs" , "user.profile" , "user.profile.generalProfile" , "user.profile.address" ]})
+    const services = await this.serviceRespotity.findOne({relations : ["user" , "category" , "subCategory" ,"serviceSteps" , "servicePackages" , "serviceReviews" , "serviceFaqs" , "user.profile" , "user.profile.generalProfile" , "user.profile.address" ]})
     response.send(services)
   }
 
@@ -61,10 +61,13 @@ class ServiceController implements Controller {
   private async saveService(service : Service) {
     const servicePackageRes = getRepository(ServicePackage)
     const serviceFaqRes = getRepository(ServiceFaq)
+    const serviceStepRes = getRepository(ServiceStep)
 
     const packages = await servicePackageRes.save(service.servicePackages)
     const faq = await serviceFaqRes.save(service.serviceFaqs)
+    const steps = await serviceStepRes.save(service.serviceSteps)
 
+    service.serviceSteps = steps
     service.serviceFaqs = faq
     service.servicePackages = packages
     const rs = await this.serviceRespotity.save(service)

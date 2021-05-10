@@ -6,6 +6,7 @@ import {ServiceFaq} from './ServiceFaq'
 import { User } from "./User";
 import { Category } from "./Category";
 import { SubCategory } from "./SubCategory";
+import { ServiceStep } from "./ServiceStep";
 
 @Entity()
 export class Service {
@@ -33,9 +34,6 @@ export class Service {
     @Column({default : 0})
     startPrice : number;
 
-    @Column({default : ""})
-    procedure : string;
-
     @ManyToOne(() => User , u => u.services)
     user: User;
 
@@ -47,5 +45,8 @@ export class Service {
 
     @OneToMany(() => ServiceFaq , s=>s.service )
     serviceFaqs : ServiceFaq[]
+
+    @OneToMany(() => ServiceStep , s=>s.service )
+    serviceSteps : ServiceStep[]
 
 }
