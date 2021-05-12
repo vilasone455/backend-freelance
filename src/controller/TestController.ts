@@ -4,10 +4,12 @@ import Controller from '../interfaces/controller.interface';
 
 import {User} from '../entity/User'
 import {Profile} from '../entity/Profile'
+import { getConnection } from 'typeorm';
 
 class TestController implements Controller {
   public path = '/testctr';
   public router = Router();
+  private con = getConnection()
 
   constructor() {
     this.initializeRoutes();
@@ -26,8 +28,9 @@ class TestController implements Controller {
 
   
   private getSchema = async (request: Request, response: Response, next: NextFunction) => {
-    const rs = this.convertTs(User)
 
+    const rs = this.con.getMetadata(User)
+    console.log(rs.schema)
     response.send(rs)
     }
 

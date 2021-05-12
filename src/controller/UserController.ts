@@ -44,14 +44,14 @@ class UserController implements Controller {
   }
 
   private getAllUser = async (request: Request, response: Response, next: NextFunction) => {
-    const users = await this.userRespotity.find({ relations: ["profile", "profile.address", "profile.generalProfile", "profile.workExs", "profile.portfilios"] });
+    const users = await this.userRespotity.find({ relations: ["profile", "profile.address", "profile.generalProfile", "profile.generalProfile.category"] });
     response.send(users)
   }
 
   private getUserById = async (request: Request, response: Response, next: NextFunction) => {
 
     const id = request.params.id;
-    const user = await this.userRespotity.findOne({ relations: ["profile", "profile.address", "profile.generalProfile", "profile.workExs", "profile.portfilios"] , where : {
+    const user = await this.userRespotity.findOne({ relations: ["profile", "profile.address", "profile.generalProfile", "profile.workExs", "profile.portfilios" , "profile.generalProfile.category" , "profile.generalProfile.subCategory" , "profile.skills"] , where : {
       id : Number(id)
     } });
 

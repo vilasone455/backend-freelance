@@ -1,4 +1,4 @@
-import {Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn} from "typeorm";
+import {Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn, ManyToOne} from "typeorm";
 import { Category } from "./Category";
 import { Profile } from "./Profile";
 import { SubCategory } from "./SubCategory";
@@ -12,11 +12,11 @@ export class GeneralProfile {
     @OneToOne(() => Profile, p => p.generalProfile)
     profile : Profile;
 
-    @OneToOne(() => Category)
+    @ManyToOne(() => Category)
     @JoinColumn()
     category : Category;
 
-    @OneToOne(() => SubCategory)
+    @ManyToOne(() => SubCategory)
     @JoinColumn()
     subCategory : SubCategory;
 

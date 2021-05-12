@@ -23,11 +23,11 @@ export class Service {
     @Column({default : ""})
     serviceImages: string;
 
-    @OneToOne(() => Category)
+    @ManyToOne(() => Category)
     @JoinColumn()
     category: Category;
 
-    @OneToOne(() => SubCategory)
+    @ManyToOne(() => SubCategory)
     @JoinColumn()
     subCategory: SubCategory;
 

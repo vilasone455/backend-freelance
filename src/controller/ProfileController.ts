@@ -16,6 +16,19 @@ import { Portfilio } from '../entity/Portfilio';
 import RequestWithUser from '../interfaces/requestWithUser.interface';
 import authMiddleware from '../middleware/auth.middleware';
 import BadPermissionExpections from '../exceptions/BadPermissionExpection';
+import { Category } from 'src/entity/Category';
+import { SubCategory } from 'src/entity/SubCategory';
+
+enum Gender {
+  Male = 1,
+  Female = 2
+}
+
+enum OrderStatus {
+  Wait = 1,
+  Start = 2,
+  Finish = 3
+}
 
 class ProfileController implements Controller {
   public path = '/profile';
@@ -41,6 +54,7 @@ class ProfileController implements Controller {
     let profile : Profile = request.body;
     const profileId = request.params.id
     const field = request.params.field
+    console.log(profileId)
     //const user = await this.userRespotity.findOne({relations: ["profile" , "profile.address" , "profile.generalProfile" , "profile.workExs" , "profile.educations" , "profile.skills" , "profile.portfilios"] , where : {id : Number(userId)}})
     const user = await this.userRespotity.findOne({profile:{id:Number(profileId)}})
 
@@ -48,7 +62,8 @@ class ProfileController implements Controller {
 
     if(user.id !== request.user.id) next(new BadPermissionExpections())
 
-    if(user){
+    try {
+      console.log("do update")
       //update only want change for optimize 
       if(field === "address"){
         const addressRes = getRepository(Address)
@@ -77,11 +92,10 @@ class ProfileController implements Controller {
       const rs = await this.profileRespotity.save(profile)
 
       response.status(200).send(rs)
+    } catch (error) {
+      response.send(error)
+    }
 
-  }else {
-    next(new UserNotFoundException(profileId));
-  }
-    response.status(200).send("test")
   }
 
   private newProfile = async (request: RequestWithUser, response: Response, next: NextFunction) => {
@@ -94,18 +108,17 @@ class ProfileController implements Controller {
     const workExRes = getRepository(WorkEx)
     const skillRes = getRepository(Skill)
     const educationRes = getRepository(Education)
-
     const portfilioRes = getRepository(Portfilio)
    
     if(user){
-  
+        
         const newAddress = await addressRes.save(profile.address)
         const newGeneral = await generalRes.save(profile.generalProfile)
         const workExs = await workExRes.save(profile.workExs)
         const skills = await skillRes.save(profile.skills)
         const educations = await educationRes.save(profile.educations)
         const portfilios = await portfilioRes.save(profile.portfilios)
-
+   
 
         profile.address = newAddress
         profile.generalProfile = newGeneral
