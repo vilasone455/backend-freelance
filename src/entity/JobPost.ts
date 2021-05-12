@@ -1,5 +1,8 @@
-import {Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToOne, JoinColumn} from "typeorm";
+import {Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany} from "typeorm";
 import { Category } from "./Category";
+
+import { Proposal } from "./Proposal";
+
 import { SubCategory } from "./SubCategory";
 import { User } from "./User";
 
@@ -21,6 +24,9 @@ export class JobPost {
     @ManyToOne(() => SubCategory, s=>s.jobPosts)
     subCategory: SubCategory;
 
+    @OneToMany(() => Proposal , p => p.jobPost)
+    proposals : Proposal[]
+
     @Column()
     postDate: string;
 
@@ -38,5 +44,6 @@ export class JobPost {
 
     @Column()
     skillRequires: string;
+
     
 }

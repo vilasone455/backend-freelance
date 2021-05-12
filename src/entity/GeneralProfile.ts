@@ -1,5 +1,7 @@
-import {Entity, Column, PrimaryGeneratedColumn, OneToOne} from "typeorm";
+import {Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn} from "typeorm";
+import { Category } from "./Category";
 import { Profile } from "./Profile";
+import { SubCategory } from "./SubCategory";
 
 @Entity()
 export class GeneralProfile {
@@ -9,6 +11,14 @@ export class GeneralProfile {
 
     @OneToOne(() => Profile, p => p.generalProfile)
     profile : Profile;
+
+    @OneToOne(() => Category)
+    @JoinColumn()
+    category : Category;
+
+    @OneToOne(() => SubCategory)
+    @JoinColumn()
+    subCategory : SubCategory;
 
     @Column()
     firstName: string;

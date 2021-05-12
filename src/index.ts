@@ -12,6 +12,7 @@ import JobPostController from "./controller/JobPostController";
 import ServiceController from "./controller/ServiceController";
 import CategoryController from "./controller/CategoryController";
 import "./initenv"
+import TestController from "./controller/TestController";
 
 
 const config : any = {
@@ -55,7 +56,8 @@ createConnection(config).then(async connection => {
         new ProfileController(),
         new JobPostController(),
         new ServiceController(),
-        new CategoryController()
+        new CategoryController(),
+        new TestController()
     ]
     
     controllers.forEach((controller) => {
