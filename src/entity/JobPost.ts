@@ -1,4 +1,4 @@
-import {Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany} from "typeorm";
+import {Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, CreateDateColumn} from "typeorm";
 import { Category } from "./Category";
 
 import { Proposal } from "./Proposal";
@@ -18,6 +18,15 @@ export class JobPost {
     @Column()
     title: string;
 
+    @CreateDateColumn()
+    createdDate: Date;
+
+    @Column({default : 1})
+    jobType: number;
+
+    @Column({default : 1})
+    experienceRequire: number;
+
     @ManyToOne(() => Category, c=>c.jobPosts)
     category: Category;
 
@@ -28,13 +37,10 @@ export class JobPost {
     proposals : Proposal[]
 
     @Column()
-    postDate: string;
-
-    @Column()
     description: string;
 
-    @Column({ nullable: false , default: "fix" } )
-    budgetType: string;
+    @Column({ default: 1 } )
+    budgetType: number;
 
     @Column({default: 0})
     budgetStart: number;
