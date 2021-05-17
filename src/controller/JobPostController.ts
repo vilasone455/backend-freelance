@@ -3,15 +3,13 @@ import { Router, Request, Response, NextFunction } from 'express';
 import Controller from '../interfaces/controller.interface';
 
 import UserNotFoundException from '../exceptions/UserNotFoundException';
-import { getRepository, In } from 'typeorm';
+import { getRepository } from 'typeorm';
 
 import { JobPost } from '../entity/JobPost';
 import RequestWithUser from '../interfaces/requestWithUser.interface';
 import authMiddleware from '../middleware/auth.middleware';
 
 import PostNotFoundException from '../exceptions/PostNotFoundException';
-import { Skill } from '../entity/Skill';
-import { GeneralProfile } from '../entity/GeneralProfile';
 
 class JobPostController implements Controller {
   public path = '/jobpost';
@@ -34,11 +32,13 @@ class JobPostController implements Controller {
 
     const post : JobPost = request.body
     const user = request.user
-
     post.user = user
-
-    await this.jobPostRespotity.save(post)
-    response.send(post)
+    try {
+      await this.jobPostRespotity.save(post)
+      response.send(post)
+    } catch (error) {
+      response.status(400).send("Bad Status")
+    }
   }
 
   private getAllJob = async (request: Request, response: Response, next: NextFunction) => {
@@ -64,13 +64,11 @@ class JobPostController implements Controller {
   private getJobById = async (request: Request, response: Response, next: NextFunction) => {
     const id = request.params.id;
     const findId = Number(id)
-    const jobQuery = this.jobPostRespotity.findOne({id : findId});
-
-    const job = await jobQuery;
-    if (job) {
-      response.send(job);
+    const jobQuery = await this.jobPostRespotity.findOne({where : {id : findId} , relations : ["user"]})
+    if (jobQuery) {
+      response.send(jobQuery);
     } else {
-      next(new UserNotFoundException(id));
+      response.status(404).send("Job not found")
     }
   }
 

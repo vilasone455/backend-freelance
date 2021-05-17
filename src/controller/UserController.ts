@@ -18,9 +18,9 @@ class UserController implements Controller {
   }
 
   private initializeRoutes() {
+    this.router.get(`/usertoken`, this.getUserByToken);
     this.router.get(`${this.path}/:id`, this.getUserById);
     this.router.get(`${this.path}`, this.getAllUser);
-    this.router.get(`${this.path}/token`, this.getUserByToken);
     this.router.get(`${this.path}/jobs`, this.getAllJob);
   }
 
@@ -31,12 +31,11 @@ class UserController implements Controller {
 
   private getUserByToken = async (request: Request, response: Response, next: NextFunction) => {
     const auth = request.headers["authorization"]
+
     if(auth){
       const verificationResponse = jwt.verify(auth, process.env.SECRET_KEY) as DataStoredInToken;
       const userTokenId = verificationResponse._id;
-      const user = await this.userRespotity.findOne({ relations: ["profile", "profile.address", "profile.generalProfile", "profile.workExs", "profile.portfilios"] , 
-      where:{id: userTokenId}});
-      
+      const user = await this.userRespotity.findOne(userTokenId);
       response.send(user)
     }else{
       response.status(400).send("require auth header")
@@ -49,7 +48,6 @@ class UserController implements Controller {
   }
 
   private getUserById = async (request: Request, response: Response, next: NextFunction) => {
-
     const id = request.params.id;
     const user = await this.userRespotity.findOne({ relations: ["profile", "profile.address", "profile.generalProfile", "profile.workExs", "profile.portfilios" , "profile.generalProfile.category" , "profile.generalProfile.subCategory" , "profile.skills"] , where : {
       id : Number(id)
