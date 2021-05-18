@@ -7,6 +7,8 @@ import UserNotFoundException from '../exceptions/UserNotFoundException';
 import { getRepository } from 'typeorm';
 import DataStoredInToken from '../interfaces/dataStoredInToken';
 
+import { AuthTokenViewStat } from './AuthTokenToViewStat';
+
 class UserController implements Controller {
   public path = '/users';
   public router = Router();
@@ -48,15 +50,21 @@ class UserController implements Controller {
   }
 
   private getUserById = async (request: Request, response: Response, next: NextFunction) => {
+    const auth = request.headers["authorization"]
+    
     const id = request.params.id;
     const user = await this.userRespotity.findOne({ relations: ["profile", "profile.address", "profile.generalProfile", "profile.workExs", "profile.portfilios" , "profile.generalProfile.category" , "profile.generalProfile.subCategory" , "profile.skills"] , where : {
       id : Number(id)
-    } });
-
-    if (user) {
-      response.send(user);
-    } else {
-      next(new UserNotFoundException(id));
+    } });    
+    try {
+      if (user) {
+        const viewStat = await AuthTokenViewStat(auth , user)
+        response.send({...user , viewStat : viewStat});
+      } else {
+        next(new UserNotFoundException(id));
+      }
+    } catch (error) {
+      response.status(400).send("Token Invaild")
     }
     
   }

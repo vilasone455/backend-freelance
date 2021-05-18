@@ -13,6 +13,7 @@ import ServiceController from "./controller/ServiceController";
 import CategoryController from "./controller/CategoryController";
 import "./initenv"
 import TestController from "./controller/TestController";
+import ProposalController from "./controller/ProposalController";
 
 
 const config : any = {
@@ -57,6 +58,7 @@ createConnection(config).then(async connection => {
         new JobPostController(),
         new ServiceController(),
         new CategoryController(),
+        new ProposalController(),
         new TestController()
     ]
     

@@ -12,6 +12,7 @@ import WrongAuthenticationTokenException from '../exceptions/WrongAuthentication
 import { ServicePackage } from '../entity/ServicePackage';
 import { ServiceFaq } from '../entity/ServiceFaq';
 import { ServiceStep } from '../entity/ServiceStep';
+import { AuthTokenViewStat } from './AuthTokenToViewStat';
 
 class ServiceController implements Controller {
   public path = '/service';
@@ -49,10 +50,23 @@ class ServiceController implements Controller {
   }
 
   private getService = async (request: Request, response: Response, next: NextFunction) => {
+    const auth = request.headers["authorization"]
     const id = request.params.id
-    const services = await this.serviceRespotity.findOne({relations : ["user" , "category" , "subCategory" ,"serviceSteps" , "servicePackages" , "serviceReviews" , "serviceFaqs" , "user.profile" , 
+    const service = await this.serviceRespotity.findOne({relations : ["user" , "category" , "subCategory" ,"serviceSteps" , "servicePackages" , "serviceReviews" , "serviceFaqs" , "user.profile" , 
     "user.profile.generalProfile" , "user.profile.address" ] , where : {id : Number(id)}})
-    response.send(services)
+    
+    try {
+      const viewStat = await AuthTokenViewStat(auth , service.user)
+      if(service){
+        response.send({...service , viewStat})
+      }else{
+        response.status(404).send("Service Not Found")
+      }
+    } catch (error) {
+      response.status(400).send("Invaild Token")
+    }
+    
+    
   }
 
   private getAllService = async (request: Request, response: Response, next: NextFunction) => {

@@ -2,14 +2,16 @@ import { Router, Request, Response, NextFunction } from 'express';
 
 import Controller from '../interfaces/controller.interface';
 
-import UserNotFoundException from '../exceptions/UserNotFoundException';
 import { getRepository } from 'typeorm';
 
 import { JobPost } from '../entity/JobPost';
 import RequestWithUser from '../interfaces/requestWithUser.interface';
-import authMiddleware from '../middleware/auth.middleware';
 
+import roleMiddleWare from '../middleware/role.middleware';
+import permission from '../middleware/permission.middleware'
 import PostNotFoundException from '../exceptions/PostNotFoundException';
+import { AuthTokenViewStat } from './AuthTokenToViewStat';
+import { UserType } from '../interfaces/UserType';
 
 class JobPostController implements Controller {
   public path = '/jobpost';
@@ -22,15 +24,15 @@ class JobPostController implements Controller {
   }
 
   private initializeRoutes() {
-    this.router.get(`${this.path}/:id` ,  this.getJobById);
-    this.router.get(`${this.path}` ,  this.getAllJob);
-    this.router.post(`${this.path}` , authMiddleware ,  this.postJob);
-    this.router.put(`${this.path}/:id` , authMiddleware ,  this.updatePost);
+    this.router.get(`${this.path}/:id`, this.getJobById);
+    this.router.get(`${this.path}`, this.getAllJob);
+    this.router.post(`${this.path}`, roleMiddleWare([UserType.User]), this.postJob);
+    this.router.put(`${this.path}/:id`, permission(JobPost), this.updatePost);
+    this.router.delete(`${this.path}/:id`, permission(JobPost), this.deletePost);
   }
 
   private postJob = async (request: RequestWithUser, response: Response, next: NextFunction) => {
-
-    const post : JobPost = request.body
+    const post: JobPost = request.body
     const user = request.user
     post.user = user
     try {
@@ -42,34 +44,51 @@ class JobPostController implements Controller {
   }
 
   private getAllJob = async (request: Request, response: Response, next: NextFunction) => {
-      const rs = await this.jobPostRespotity.find({ relations: ["user","category","subCategory"] })
-      response.send(rs)
+    const rs = await this.jobPostRespotity.find({ relations: ["user", "category", "subCategory"] })
+    response.send(rs)
   }
 
   private updatePost = async (request: RequestWithUser, response: Response, next: NextFunction) => {
-    const id = request.params.id
-    const user = request.user
+    console.log("update")
     const updatePost : JobPost = request.body
-    const post = await this.jobPostRespotity.findOne({user : user})
-    if(post){
-        await this.jobPostRespotity.save(updatePost)
-        response.send(updatePost)
-    }else{
-        next(new PostNotFoundException(id));
+    try {
+      await this.jobPostRespotity.save(updatePost)
+      response.send(updatePost)
+    } catch (error) {
+      response.status(400).send("Bad Request")
     }
+    
    
-}
+  }
 
+  private deletePost = async (request: Request, response: Response, next: NextFunction) => {
+    const id = request.params.id
+    try {
+      console.log(id)
+      const rs = await this.jobPostRespotity.delete(id)
+      response.send(rs)
+    } catch (error) {
+      console.log(error)
+      response.status(404).send("Wrong Id")
+    }
+  }
 
   private getJobById = async (request: Request, response: Response, next: NextFunction) => {
+    const auth = request.headers["authorization"]
     const id = request.params.id;
     const findId = Number(id)
-    const jobQuery = await this.jobPostRespotity.findOne({where : {id : findId} , relations : ["user"]})
-    if (jobQuery) {
-      response.send(jobQuery);
-    } else {
-      response.status(404).send("Job not found")
+    const jobQuery = await this.jobPostRespotity.findOne({ where: { id: findId }, relations: ["user"] })
+    try {
+      if (jobQuery) {
+        const viewStat = await AuthTokenViewStat(auth, jobQuery.user)
+        response.send({ ...jobQuery, viewStat });
+      } else {
+        response.status(404).send("Job not found")
+      }
+    } catch (error) {
+      response.status(400).send("Invaid Token")
     }
+
   }
 
 

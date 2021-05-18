@@ -18,7 +18,7 @@ export class Proposal {
     @ManyToOne(()=> User , u=>u.proposals)
     user : User
 
-    @ManyToOne(() => JobPost , j=>j.proposals)
+    @ManyToOne(() => JobPost , j=>j.proposals , {cascade : true})
     jobPost : JobPost
  
 }

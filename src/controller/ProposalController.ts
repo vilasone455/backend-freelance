@@ -2,14 +2,15 @@ import { Router, Request, Response, NextFunction } from 'express';
 
 import Controller from '../interfaces/controller.interface';
 
-import {User} from '../entity/User'
-import {Profile} from '../entity/Profile'
 import RequestWithUser from '../interfaces/requestWithUser.interface';
 import BadPermissionExpections from '../exceptions/BadPermissionExpection';
 import { getRepository } from 'typeorm';
 import { Proposal } from '../entity/Proposal';
-import authMiddleware from '../middleware/auth.middleware';
-import { JobPost } from '../entity/JobPost';
+import roleMiddleWare from '../middleware/role.middleware';
+import permission from '../middleware/permission.middleware'
+import { UserType } from '../interfaces/UserType';
+import BadRequestExpection from '../exceptions/BadRequestExpection';
+
 
 class ProposalController implements Controller {
   public path = '/proposal';
@@ -22,29 +23,38 @@ class ProposalController implements Controller {
   }
 
   private initializeRoutes() {
-    this.router.get(`${this.path}/generate` ,  this.getAllOrder);
-    this.router.post(`${this.path}` ,  authMiddleware , this.addProposal);
-  }
-
-  private replyProposal() {
-      
+    this.router.get(`${this.path}`, this.getAllProposal);
+    this.router.post(`${this.path}`, roleMiddleWare([UserType.Freelance]) , this.addProposal);
+    this.router.put(`${this.path}/:id`, permission(Proposal), this.editProposal);
   }
 
   private addProposal = async (request: RequestWithUser, response: Response, next: NextFunction) => {
-    const user = request.user
-    const proposal : Proposal = request.body
-    if(user.userType !== 2) next(new BadPermissionExpections())
+    const proposal: Proposal = request.body
+    try {
+      proposal.user = request.user
+      const rs = await this.proposalRes.save(proposal)
+      response.send(rs)
+    } catch (error) {
+      next(new BadRequestExpection())
+    }
+  }
 
-    proposal.user = user
-    const rs = await this.proposalRes.save(proposal)
-    
-    response.send(rs)
-    } 
+  private editProposal = async (request: RequestWithUser, response: Response, next: NextFunction) => {
+    const proposal: Proposal = request.body
+    try {
+      proposal.user = request.user
+      const rs = await this.proposalRes.save(proposal)
+      response.send(rs)
+    } catch (error) {
+      next(new BadRequestExpection())
+    }
+   
+  }
 
-  private getAllOrder = async (request: Request, response: Response, next: NextFunction) => {
+  private getAllProposal = async (request: Request, response: Response, next: NextFunction) => {
     const rs = await this.proposalRes.find({ relations: ["user"] })
     response.send(rs)
-    }
+  }
 
 }
 

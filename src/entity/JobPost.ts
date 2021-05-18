@@ -33,7 +33,7 @@ export class JobPost {
     @ManyToOne(() => SubCategory, s=>s.jobPosts)
     subCategory: SubCategory;
 
-    @OneToMany(() => Proposal , p => p.jobPost)
+    @OneToMany(() => Proposal , p => p.jobPost )
     proposals : Proposal[]
 
     @Column()

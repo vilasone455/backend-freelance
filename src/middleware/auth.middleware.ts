@@ -8,7 +8,8 @@ import {User} from '../entity/User';
 import { getRepository } from 'typeorm';
 
 
-async function authMiddleware(request: RequestWithUser, response: Response, next: NextFunction) {
+
+async function authMiddleware(request: RequestWithUser, response: Response, next: NextFunction ) {
 
   const auth = request.headers["authorization"]
   if (auth) {
