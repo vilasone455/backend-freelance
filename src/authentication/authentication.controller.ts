@@ -100,7 +100,7 @@ class AuthenticationController implements Controller {
   }
 
   private createToken(user: User): TokenData {
-    const expiresIn = 60 * 60; // an hour
+    const expiresIn = "7d"; // an hour
     const secret = process.env.SECRET_KEY;
     const dataStoredInToken: DataStoredInToken = {
       _id: user.id,

@@ -5,6 +5,7 @@ import {  getRepository, Repository } from 'typeorm';
 
 import {Service} from '../entity/Service'
 import authMiddleware from "../middleware/auth.middleware";
+import permissionMiddleware from "../middleware/permission.middleware";
 import RequestWithUser from '../interfaces/requestWithUser.interface'
 import BadPermissionExpections from '../exceptions/BadPermissionExpection';
 
@@ -29,7 +30,7 @@ class ServiceController implements Controller {
     this.router.get(`${this.path}/:id` , this.getService);
     this.router.post(`${this.path}/test/:id` , authMiddleware , this.testService);
     this.router.post(`${this.path}` , authMiddleware , this.newService);
-    this.router.put(`${this.path}/:id` , authMiddleware , this.updateService);
+    this.router.put(`${this.path}/:id` , permissionMiddleware(Service) , this.updateService);
     this.router.delete(`${this.path}/:id` , authMiddleware , this.removeService);
   }
 
@@ -93,27 +94,17 @@ class ServiceController implements Controller {
   private updateService = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     const service : Service = request.body
     const id = request.params.id
-    const user = request.user
     if(Number(id) !== service.id){
       response.status(400).send("wrong id")
     }
-
-    const userServices = await this.serviceRespotity.find({user : {id : user.id}})
-    const isHavePermission = userServices.find(s=>s.id === service.id)
-    if(isHavePermission === null) next(new BadPermissionExpections());
-
     const rs = await this.saveService(service)
-
     response.send(rs)
   }
 
   private newService = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     const service : Service = request.body
     const user = request.user
-
-    if(user.id !== service.user.id){
-      next(new WrongAuthenticationTokenException())
-    } 
+    service.user = user
     const rs = this.saveService(service)
     response.send(rs)
   }

@@ -13,7 +13,7 @@ import { UserType } from "../interfaces/UserType";
 function roleMiddleWare<T>(roles : UserType[] = [] , isAdd = true): RequestHandler {
     return async (req : RequestWithUser, res, next) => {
         const auth = req.headers["authorization"]
-        if(isAdd) delete req.body.id
+        if(isAdd && req.body.id) delete req.body.id
         if (auth) {
             const userRepository = getRepository(User)
             try {
