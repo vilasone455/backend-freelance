@@ -3,27 +3,24 @@ import * as jwt from 'jsonwebtoken';
 import AuthenticationTokenMissingException from '../exceptions/AuthenticationTokenMissingException';
 import WrongAuthenticationTokenException from '../exceptions/WrongAuthenticationTokenException';
 import DataStoredInToken from '../interfaces/dataStoredInToken';
-import RequestWithUser from '../interfaces/requestWithUser.interface';
+
 import { EntityTarget, getRepository } from 'typeorm';
 import BadPermissionExpections from '../exceptions/BadPermissionExpection';
 import RequestWithEntity from 'src/interfaces/requestWithEntity.interface';
 
-
-
-function validationMiddleware<T>(entity : EntityTarget<T>): RequestHandler {
-    return async (req : RequestWithUser, res, next) => {
+function permission1To1<T>(entity : EntityTarget<T> , entityName : string): RequestHandler {
+    return async (req : RequestWithEntity<T>, res, next) => {
         const auth = req.headers["authorization"]
-        console.log(auth)
         const id = req.params.id
         if (auth) {
             try {
                 const verificationResponse = jwt.verify(auth, process.env.SECRET_KEY) as DataStoredInToken;
-                const userTokenId = verificationResponse._id;
                 const entityRes = getRepository(entity)
-                const rs = await entityRes.findOne({where : {"user" : {"id" : userTokenId} , "id" : id } , relations : ["user"] })
+                const cc = entityName
+                const rs = await entityRes.findOne({where : { [cc] : {"id" : id}} , relations : [entityName] })
 
                 if(rs){
-                    req.user = rs["user"]
+                    req.data =rs
                     next()
                 }else{
                     next(new BadPermissionExpections()) 
@@ -38,5 +35,4 @@ function validationMiddleware<T>(entity : EntityTarget<T>): RequestHandler {
     };
 }
 
-export default validationMiddleware;
-
+export default permission1To1
