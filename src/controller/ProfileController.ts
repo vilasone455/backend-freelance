@@ -9,7 +9,6 @@ import { User } from '../entity/User';
 import { Address } from '../entity/Address';
 import { GeneralProfile } from '../entity/GeneralProfile';
 import { WorkEx } from '../entity/WorkEx';
-import { Skill } from '../entity/Skill';
 import { Education } from '../entity/Education';
 import { Portfilio } from '../entity/Portfilio';
 
@@ -17,9 +16,9 @@ import RequestWithUser from '../interfaces/requestWithUser.interface';
 import authMiddleware from '../middleware/auth.middleware';
 import permissionMiddleWare from '../middleware/permisson1To1.middleware';
 import BadPermissionExpections from '../exceptions/BadPermissionExpection';
-import { Category } from 'src/entity/Category';
-import { SubCategory } from 'src/entity/SubCategory';
-import RequestWithEntity from 'src/interfaces/requestWithEntity.interface';
+
+import RequestWithEntity from '../interfaces/requestWithEntity.interface';
+import { Language } from '../entity/Language';
 
 enum Gender {
   Male = 1,
@@ -119,21 +118,21 @@ class ProfileController implements Controller {
       const addressRes = getRepository(Address)
       const generalRes = getRepository(GeneralProfile)
       const workExRes = getRepository(WorkEx)
-      const skillRes = getRepository(Skill)
+      const lanRes = getRepository(Language)
       const educationRes = getRepository(Education)
       const portfilioRes = getRepository(Portfilio)
 
       const newAddress = await addressRes.save(profile.address)
       const newGeneral = await generalRes.save(profile.generalProfile)
       const workExs = await workExRes.save(profile.workExs)
-      const skills = await skillRes.save(profile.skills)
+      const lans = await lanRes.save(profile.languages)
       const educations = await educationRes.save(profile.educations)
       const portfilios = await portfilioRes.save(profile.portfilios)
 
       profile.address = newAddress
       profile.generalProfile = newGeneral
       profile.workExs = workExs
-      profile.skills = skills
+      profile.languages = lans
       profile.educations = educations
       profile.portfilios = portfilios
 
@@ -158,7 +157,7 @@ class ProfileController implements Controller {
     const addressRes = getRepository(Address)
     const generalRes = getRepository(GeneralProfile)
     const workExRes = getRepository(WorkEx)
-    const skillRes = getRepository(Skill)
+    const lanRes = getRepository(Language)
     const educationRes = getRepository(Education)
     const portfilioRes = getRepository(Portfilio)
 
@@ -167,7 +166,7 @@ class ProfileController implements Controller {
       const newAddress = await addressRes.save(profile.address)
       const newGeneral = await generalRes.save(profile.generalProfile)
       const workExs = await workExRes.save(profile.workExs)
-      const skills = await skillRes.save(profile.skills)
+      const lans = await lanRes.save(profile.languages)
       const educations = await educationRes.save(profile.educations)
       const portfilios = await portfilioRes.save(profile.portfilios)
 
@@ -175,7 +174,7 @@ class ProfileController implements Controller {
       profile.address = newAddress
       profile.generalProfile = newGeneral
       profile.workExs = workExs
-      profile.skills = skills
+      profile.languages = lans
       profile.educations = educations
       profile.portfilios = portfilios
 
@@ -193,7 +192,6 @@ class ProfileController implements Controller {
 
   private getAllProject = async (request: Request, response: Response, next: NextFunction) => {
     const users = await this.profileRespotity.find()
-    console.log(users.length)
     response.send(users)
   }
 

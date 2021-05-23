@@ -7,8 +7,6 @@ export class Skill {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne(() => Profile, p => p.skills)
-    profile: Profile;
 
     @Column()
     skillName: string;

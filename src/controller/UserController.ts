@@ -53,7 +53,7 @@ class UserController implements Controller {
     const auth = request.headers["authorization"]
     
     const id = request.params.id;
-    const user = await this.userRespotity.findOne({ relations: ["profile", "profile.educations" ,  "profile.address", "profile.generalProfile", "profile.workExs", "profile.portfilios" , "profile.generalProfile.category" , "profile.generalProfile.subCategory" , "profile.skills"] , where : {
+    const user = await this.userRespotity.findOne({ relations: ["profile", "profile.educations" ,  "profile.address", "profile.generalProfile", "profile.workExs", "profile.portfilios" , "profile.generalProfile.category" , "profile.generalProfile.subCategory" , "profile.languages"] , where : {
       id : Number(id)
     } });    
     try {
