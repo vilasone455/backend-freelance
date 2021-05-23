@@ -77,7 +77,7 @@ class JobPostController implements Controller {
     const auth = request.headers["authorization"]
     const id = request.params.id;
     const findId = Number(id)
-    const jobQuery = await this.jobPostRespotity.findOne({ where: { id: findId }, relations: ["user"] })
+    const jobQuery = await this.jobPostRespotity.findOne({ where: { id: findId }, relations: ["user" , "proposals"] })
     try {
       if (jobQuery) {
         const viewStat = await AuthTokenViewStat(auth, jobQuery.user)
