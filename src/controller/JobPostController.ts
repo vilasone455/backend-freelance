@@ -12,6 +12,7 @@ import permission from '../middleware/permission.middleware'
 import PostNotFoundException from '../exceptions/PostNotFoundException';
 import { AuthTokenViewStat } from './AuthTokenToViewStat';
 import { UserType } from '../interfaces/UserType';
+import { ViewStat } from '../interfaces/ViewStat';
 
 class JobPostController implements Controller {
   public path = '/jobpost';
@@ -73,14 +74,22 @@ class JobPostController implements Controller {
     }
   }
 
+
   private getJobById = async (request: Request, response: Response, next: NextFunction) => {
     const auth = request.headers["authorization"]
     const id = request.params.id;
     const findId = Number(id)
-    const jobQuery = await this.jobPostRespotity.findOne({ where: { id: findId }, relations: ["user" , "proposals"] })
+    
+    const jobQuery = await this.jobPostRespotity.findOne({ where: { id: findId }, relations: ["user" , "proposals" , "proposals.user"] })
     try {
       if (jobQuery) {
-        const viewStat = await AuthTokenViewStat(auth, jobQuery.user)
+
+        const {user,viewStat} = await AuthTokenViewStat(auth, jobQuery.user)
+        if(viewStat === ViewStat.ViewOther || viewStat === ViewStat.ViewUser) jobQuery.proposals = []
+        if(viewStat === ViewStat.ViewFreelance){
+          const proposal = jobQuery.proposals.find(p=>p.user.id === user.id)
+          jobQuery.proposals = [proposal]
+        }
         response.send({ ...jobQuery, viewStat });
       } else {
         response.status(404).send("Job not found")
