@@ -88,7 +88,7 @@ class JobPostController implements Controller {
         if(viewStat === ViewStat.ViewOther || viewStat === ViewStat.ViewUser) jobQuery.proposals = []
         if(viewStat === ViewStat.ViewFreelance){
           const proposal = jobQuery.proposals.find(p=>p.user.id === user.id)
-          if(proposal !== null){
+          if(proposal !== undefined){
             jobQuery.proposals = [proposal]
           }else jobQuery.proposals = []
   
