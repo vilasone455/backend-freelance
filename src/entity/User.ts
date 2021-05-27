@@ -36,9 +36,6 @@ export class User {
     @OneToMany(() => Service, s => s.user)
     services : Service[]
 
-    @OneToMany(() => Order, o => o.user)
-    orders : Order[]
-
     @OneToMany(() => ServiceReview, s => s.user)
     serviceComments : ServiceReview[]
 

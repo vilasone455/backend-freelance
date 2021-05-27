@@ -12,8 +12,6 @@ export class PriceItem  {
     @ManyToOne(() => User, p => p.priceItems)
     user: User;
 
-    @ManyToMany(() => Order, o => o.priceItems)
-    orders: Order[];
 
     @Column()
     itemName : string;

@@ -3,13 +3,17 @@ import { Router, Request, Response, NextFunction } from 'express';
 import Controller from '../interfaces/controller.interface';
 
 import RequestWithUser from '../interfaces/requestWithUser.interface';
-import BadPermissionExpections from '../exceptions/BadPermissionExpection';
 import { getRepository } from 'typeorm';
 import { Proposal } from '../entity/Proposal';
 import roleMiddleWare from '../middleware/role.middleware';
-import permission from '../middleware/permission.middleware'
 import { UserType } from '../interfaces/UserType';
 import BadRequestExpection from '../exceptions/BadRequestExpection';
+import { OfferStat } from '../interfaces/OfferStat';
+import BadPermissionExpections from '../exceptions/BadPermissionExpection';
+import { Order } from '../entity/Order';
+import { CreateOrder } from '../interfaces/CreateOrder.dto';
+import authMiddleware from '../middleware/auth.middleware';
+import { EditProposal } from '../dto/EditProposal.dto';
 
 
 class ProposalController implements Controller {
@@ -23,16 +27,20 @@ class ProposalController implements Controller {
   }
 
   private initializeRoutes() {
+    this.router.get(`${this.path}/accept/:id`, authMiddleware ,this.acceptOffer);
+    this.router.get(`${this.path}/decline`, authMiddleware ,this.declineOffer);
     this.router.get(`${this.path}`, this.getAllProposal);
-    this.router.post(`${this.path}`, roleMiddleWare([UserType.Freelance]) , this.addProposal);
-    this.router.put(`${this.path}/:id`, permission(Proposal), this.editProposal);
+    this.router.post(`${this.path}`, roleMiddleWare([UserType.User]) , this.addProposal);
+    this.router.put(`${this.path}/:id`, authMiddleware , this.editProposal);
   }
 
   private addProposal = async (request: RequestWithUser, response: Response, next: NextFunction) => {
-    const proposal: Proposal = request.body
+    const proposal: EditProposal = request.body
+
     try {
       proposal.user = request.user
-      const rs = await this.proposalRes.save(proposal)
+      console.log(proposal as any)
+      const rs = await this.proposalRes.save(proposal as any)
       response.send(rs)
     } catch (error) {
       next(new BadRequestExpection())
@@ -41,18 +49,72 @@ class ProposalController implements Controller {
 
   private editProposal = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     const proposal: Proposal = request.body
+    const user = request.user
     try {
-      proposal.user = request.user
-      const rs = await this.proposalRes.save(proposal)
-      response.send(rs)
+      const isUser = proposal.user.id === user.id
+      const isFreelance = proposal.freelance.id === user.id
+      proposal.userAccept = false
+      proposal.freelanceAccept = false
+      if(isUser|| isFreelance){
+        if(isUser) proposal.userAccept = true
+        if(isFreelance) proposal.freelanceAccept = true
+        const rs = await this.proposalRes.save(proposal)
+        response.send(rs)
+      }else{ next(new BadPermissionExpections())}
+      
     } catch (error) {
       next(new BadRequestExpection())
     }
    
   }
 
+  private acceptOffer = async (request: RequestWithUser, response: Response, next: NextFunction) => {
+    const user = request.user
+    const proposal = await this.proposalRes.findOne({where:{id:request.params.id} , relations:["user" , "freelance"]})
+    try {
+      console.log(proposal)
+      const isUser = proposal.user.id === user.id
+      const isFreelance = proposal.freelance.id === user.id
+      if(isUser || isFreelance){
+        if(isUser && !proposal.freelanceAccept){ // when will accept  must accepted
+          next(new BadPermissionExpections())
+        }else if(isFreelance && !proposal.userAccept){ // when freelance will accept user must accepted
+          next(new BadPermissionExpections())
+        }
+        proposal.status = OfferStat.Accept
+        proposal.freelanceAccept = true
+        proposal.userAccept = true
+        await this.proposalRes.save(proposal)
+        const order : CreateOrder = {orderStatus : 1, proposal}
+        const orderRes = getRepository(Order)
+        await orderRes.save(order)
+        response.send(order)
+      }else{
+        next(new BadPermissionExpections())
+      }
+    } catch (error) {
+      console.log(error)
+      response.status(400).send("Bad Error")
+    }
+  }
+
+  private declineOffer = async (request: RequestWithUser, response: Response, next: NextFunction) => {
+    const user = request.user
+    const proposal = await this.proposalRes.findOne(request.params.id)
+    if(proposal.status === OfferStat.Accept) next(new BadRequestExpection())
+    if(proposal.user.id === user.id || proposal.freelance.id === user.id){
+      proposal.status = OfferStat.Cancle
+      proposal.freelanceAccept = false
+      proposal.userAccept = false
+      await this.proposalRes.save(proposal)
+      response.send("Order Success")
+    }else{
+      next(new BadPermissionExpections())
+    }
+  }
+
   private getAllProposal = async (request: Request, response: Response, next: NextFunction) => {
-    const rs = await this.proposalRes.find({ relations: ["user"] })
+    const rs = await this.proposalRes.find({ relations: ["user" , "freelance"] })
     response.send(rs)
   }
 

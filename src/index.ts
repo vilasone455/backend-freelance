@@ -14,6 +14,7 @@ import CategoryController from "./controller/CategoryController";
 import "./initenv"
 import TestController from "./controller/TestController";
 import ProposalController from "./controller/ProposalController";
+import OrderController from "./controller/OrderController";
 
 
 const config : any = {
@@ -59,7 +60,8 @@ createConnection(config).then(async connection => {
         new ServiceController(),
         new CategoryController(),
         new ProposalController(),
-        new TestController()
+        new TestController(),
+        new OrderController()
     ]
     
     controllers.forEach((controller) => {

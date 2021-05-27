@@ -10,8 +10,8 @@ import authMiddleware from '../middleware/auth.middleware';
 import { Category } from '../entity/Category';
 import { SubCategory } from '../entity/SubCategory';
 import BadPermissionExpections from '../exceptions/BadPermissionExpection';
-import { Order } from 'src/entity/Order';
-import { User } from 'src/entity/User';
+import { Order } from '../entity/Order';
+import { User } from '../entity/User';
 
 enum OrderStat {
   onWaitClientStartAccept = 1,
@@ -46,7 +46,7 @@ class OrderController implements Controller {
     }
 
   private getAllOrder = async (request: Request, response: Response, next: NextFunction) => {
-      const rs = await this.orderRespotity.find({ relations: ["user"] })
+      const rs = await this.orderRespotity.find({ relations: ["proposal" ] })
       response.send(rs)
   }
 
@@ -67,7 +67,7 @@ class OrderController implements Controller {
 
     if(user.userType !== 1) next(new BadPermissionExpections())
 
-    const order = await this.orderRespotity.findOne({user : {id : user.id} , id : Number(orderId) })
+    const order = await this.orderRespotity.findOne({proposal : {freelance : {id : user.id}} , id : Number(orderId) })
     if(order){
       order.orderStatus = Number(status)
       const rs = await this.orderRespotity.save(order)
