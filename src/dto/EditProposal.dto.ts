@@ -7,5 +7,5 @@ export interface EditProposal{
     desc:string
     jobPost?:number
     user?:User
-    freelance?:User
+    freelance?:User|number
 }

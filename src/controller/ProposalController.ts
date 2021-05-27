@@ -36,9 +36,11 @@ class ProposalController implements Controller {
 
   private addProposal = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     const proposal: EditProposal = request.body
-
     try {
       proposal.user = request.user
+      if(proposal.user.id === proposal.freelance){
+        return new BadRequestExpection()
+      }
       console.log(proposal as any)
       const rs = await this.proposalRes.save(proposal as any)
       response.send(rs)
@@ -77,9 +79,9 @@ class ProposalController implements Controller {
       const isFreelance = proposal.freelance.id === user.id
       if(isUser || isFreelance){
         if(isUser && !proposal.freelanceAccept){ // when will accept  must accepted
-          next(new BadPermissionExpections())
+          return response.status(400).send("Bad Permission")
         }else if(isFreelance && !proposal.userAccept){ // when freelance will accept user must accepted
-          next(new BadPermissionExpections())
+          return response.status(400).send("Bad Permission")
         }
         proposal.status = OfferStat.Accept
         proposal.freelanceAccept = true
