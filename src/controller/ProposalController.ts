@@ -27,6 +27,7 @@ class ProposalController implements Controller {
   }
 
   private initializeRoutes() {
+    this.router.get(`${this.path}/:id`, this.getProposalByUser);
     this.router.get(`${this.path}/accept/:id`, authMiddleware ,this.acceptOffer);
     this.router.get(`${this.path}/decline`, authMiddleware ,this.declineOffer);
     this.router.get(`${this.path}`, this.getAllProposal);
@@ -117,6 +118,18 @@ class ProposalController implements Controller {
 
   private getAllProposal = async (request: Request, response: Response, next: NextFunction) => {
     const rs = await this.proposalRes.find({ relations: ["user" , "freelance"] })
+    response.send(rs)
+  }
+
+  private getProposalByUser = async (request: Request, response: Response, next: NextFunction) => {
+    const id = request.params.id
+    
+    const rs = await this.proposalRes.find({where : [
+      {"user" : {"id" : id} },
+      {"freelance" : {"id" : id} }
+    ] , 
+    relations : ["user" , "freelance"] })
+
     response.send(rs)
   }
 
