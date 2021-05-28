@@ -27,6 +27,7 @@ class ProposalController implements Controller {
   }
 
   private initializeRoutes() {
+    this.router.get(`${this.path}/:id`, authMiddleware ,this.getProposalById);
     this.router.get(`${this.path}`, authMiddleware ,this.getProposalByUser);
     this.router.get(`${this.path}/accept/:id`, authMiddleware ,this.acceptOffer);
     this.router.get(`${this.path}/decline`, authMiddleware ,this.declineOffer);
@@ -130,6 +131,21 @@ class ProposalController implements Controller {
     relations : ["user" , "freelance"] })
     response.send(rs)
   }
+
+  private getProposalById = async (request: RequestWithUser, response: Response, next: NextFunction) => {
+    const id = request.params.id
+    const user = request.user
+    const rs = await this.proposalRes.findOne({where : {id:id}, 
+    relations : ["user" , "freelance"] })
+    if(rs.user.id === user.id || rs.freelance.id === user.id){
+      response.send(rs)
+    }else{
+      next(new BadPermissionExpections())
+    }
+    
+  }
+
+
 
 }
 
