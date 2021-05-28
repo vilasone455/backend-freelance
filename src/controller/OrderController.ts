@@ -10,6 +10,7 @@ import { Order } from '../entity/Order';
 
 import { OrderStat } from '../interfaces/OrderStat';
 import authMiddleware from '../middleware/auth.middleware';
+import { Proposal } from '../entity/Proposal';
 
 
 
@@ -24,19 +25,25 @@ class OrderController implements Controller {
   }
 
   private initializeRoutes() {
-    this.router.get(`${this.path}` ,  this.getAllOrder);
+    this.router.get(`${this.path}s` ,  this.getAllOrder);
    
-    this.router.get(`${this.path}/:id` ,  this.getOrderByUser);
+    this.router.get(`${this.path}` , authMiddleware ,  this.getOrderByUser);
     this.router.get(`${this.path}/sendfinish/:orderid` , authMiddleware ,  this.sendFinish);
     this.router.get(`${this.path}/canclefinish/:orderid` , authMiddleware,  this.declineFinish);
     this.router.get(`${this.path}/finish/:orderid` , authMiddleware, this.acceptFinishOrder);
   }
 
-  private getOrderByUser = async (request: Request, response: Response, next: NextFunction) => {
-    const id = request.params.id
-    const rs = await this.orderRespotity.find({where : {user : {id : Number(id)}} , relations : ["user"]})
+  private getOrderByUser = async (request: RequestWithUser, response: Response, next: NextFunction) => {
+    const id = request.user.id 
+    const rs = await this.orderRespotity.createQueryBuilder("o")
+    .innerJoinAndSelect("o.proposal", "proposal")
+    .innerJoinAndSelect("proposal.user", "user")
+    .innerJoinAndSelect("proposal.freelance", "freelance")
+    .where("proposal.userId = :id", { id })
+    .getMany()
+
     response.send(rs)
-    }
+  }
 
   private getAllOrder = async (request: Request, response: Response, next: NextFunction) => {
       const rs = await this.orderRespotity.find({ relations: ["proposal" , "proposal.user" , "proposal.freelance" ] })
