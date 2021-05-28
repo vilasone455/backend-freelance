@@ -1,8 +1,8 @@
-import ProposalController from "src/controller/ProposalController";
-import {Entity, PrimaryGeneratedColumn, Column, ManyToOne, ManyToMany, JoinTable, OneToOne, JoinColumn} from "typeorm";
-import { PriceItem } from "./Item";
+
+import {Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn, CreateDateColumn} from "typeorm";
+
 import { Proposal } from "./Proposal";
-import { User } from "./User";
+import { Review } from "./Review";
 
 @Entity()
 export class Order {
@@ -13,8 +13,18 @@ export class Order {
     @Column()
     orderStatus: number;
 
+    @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)" })
+    createdAt: Date;
+
+    @Column({default : () => "CURRENT_TIMESTAMP(6)"})
+    finishAt: Date;
+
     @OneToOne(() => Proposal)
     @JoinColumn()
     proposal : Proposal
+
+    @OneToOne(() => Review, r => r.order) // specify inverse side as a second parameter
+    @JoinColumn()
+    review : Review
 
 }

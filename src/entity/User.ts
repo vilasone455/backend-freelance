@@ -5,6 +5,7 @@ import { Order } from "./Order";
 import { Profile } from "./Profile";
 import { Proposal } from "./Proposal";
 import { Report } from "./Report";
+import { Review } from "./Review";
 import { Service } from "./Service";
 import { ServiceReview } from "./ServiceReview";
 
