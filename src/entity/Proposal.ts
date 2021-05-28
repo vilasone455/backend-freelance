@@ -9,6 +9,9 @@ export class Proposal {
     @PrimaryGeneratedColumn()
     id : number;
 
+    @Column({default:""})
+    title : string
+
     @Column()
     desc : string
 
