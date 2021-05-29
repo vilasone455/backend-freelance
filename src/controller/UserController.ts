@@ -59,7 +59,7 @@ class UserController implements Controller {
     try {
       if (user) {
         const viewStat = await AuthTokenViewStat(auth , user)
-        response.send({...user , viewStat : viewStat});
+        response.send({...user , viewStat : viewStat.viewStat});
       } else {
         next(new UserNotFoundException(id));
       }

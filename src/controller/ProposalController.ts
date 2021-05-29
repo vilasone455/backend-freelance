@@ -30,7 +30,7 @@ class ProposalController implements Controller {
     this.router.get(`${this.path}/:id`, authMiddleware ,this.getProposalById);
     this.router.get(`${this.path}`, authMiddleware ,this.getProposalByUser);
     this.router.get(`${this.path}/accept/:id`, authMiddleware ,this.acceptOffer);
-    this.router.get(`${this.path}/decline`, authMiddleware ,this.declineOffer);
+    this.router.get(`${this.path}/decline/:id`, authMiddleware ,this.declineOffer);
     this.router.get(`${this.path}s`, this.getAllProposal);
     this.router.post(`${this.path}`, roleMiddleWare([UserType.User]) , this.addProposal);
     this.router.put(`${this.path}/:id`, authMiddleware , this.editProposal);
@@ -80,9 +80,10 @@ class ProposalController implements Controller {
       const isUser = proposal.user.id === user.id
       const isFreelance = proposal.freelance.id === user.id
       if(isUser || isFreelance){
-        if(isUser && !proposal.freelanceAccept){ // when will accept  must accepted
+        //cant self accept
+        if(isUser &&  proposal.userAccept && !proposal.freelanceAccept){ // when will accept  must accepted
           return response.status(400).send("Bad Permission")
-        }else if(isFreelance && !proposal.userAccept){ // when freelance will accept user must accepted
+        }else if(isFreelance && proposal.freelanceAccept  && !proposal.userAccept){ // when freelance will accept user must accepted
           return response.status(400).send("Bad Permission")
         }
         proposal.status = OfferStat.Accept
