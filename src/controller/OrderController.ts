@@ -39,7 +39,7 @@ class OrderController implements Controller {
     .innerJoinAndSelect("o.proposal", "proposal")
     .innerJoinAndSelect("proposal.user", "user")
     .innerJoinAndSelect("proposal.freelance", "freelance")
-    .innerJoinAndSelect("proposal.review" , "review")
+    .innerJoinAndSelect("o.review" , "review")
     .where("proposal.userId = :id or proposal.freelanceId= :id", { id })
     .getMany()
 
