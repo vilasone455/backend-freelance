@@ -29,14 +29,13 @@ class OrderController implements Controller {
 
   private getOrderByUser = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     const id = request.user.id 
+    console.log("user id : "+id)
     const rs = await this.orderRespotity.createQueryBuilder("o")
     .innerJoinAndSelect("o.proposal", "proposal")
-    .innerJoinAndSelect("proposal.user", "user")
     .innerJoinAndSelect("proposal.freelance", "freelance")
-    .innerJoinAndSelect("o.review" , "review")
-    .where("proposal.userId = :id or proposal.freelanceId= :id", { id })
+    .where("proposal.userId = :id or proposal.freelanceId=:id", { id })
     .getMany()
-
+    
     response.send(rs)
   }
 
