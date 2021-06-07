@@ -86,6 +86,13 @@ class ProposalController implements Controller {
         }else if(isFreelance && proposal.freelanceAccept  && !proposal.userAccept){ // when freelance will accept user must accepted
           return response.status(400).send("Bad Permission")
         }
+        const expireDate = proposal.updatedAt
+        expireDate.setDate(expireDate.getDate() + 7);
+
+        if(isExpire(proposal.updatedAt , expireDate)){
+          return response.status(400).send("Expire Session")
+        }
+
         proposal.status = OfferStat.Accept
         proposal.freelanceAccept = true
         proposal.userAccept = true

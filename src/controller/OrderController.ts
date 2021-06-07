@@ -1,18 +1,11 @@
 import { Router, Request, Response, NextFunction } from 'express';
-
 import Controller from '../interfaces/controller.interface';
-
-import { getRepository, In } from 'typeorm';
-
+import { getRepository } from 'typeorm';
 import RequestWithUser from '../interfaces/requestWithUser.interface';
-
 import { Order } from '../entity/Order';
-
 import { OrderStat } from '../interfaces/OrderStat';
 import authMiddleware from '../middleware/auth.middleware';
-import { Proposal } from '../entity/Proposal';
-
-
+import { User } from 'src/entity/User';
 
 class OrderController implements Controller {
   public path = '/order';
@@ -26,7 +19,8 @@ class OrderController implements Controller {
 
   private initializeRoutes() {
     this.router.get(`${this.path}s` ,  this.getAllOrder);
-   
+    this.router.get(`${this.path}/user/all` , authMiddleware , this.getFreelanceByOrderV1);
+    this.router.get(`${this.path}/user/:id` , this.getFreelanceByOrder);
     this.router.get(`${this.path}` , authMiddleware ,  this.getOrderByUser);
     this.router.get(`${this.path}/sendfinish/:orderid` , authMiddleware ,  this.sendFinish);
     this.router.get(`${this.path}/canclefinish/:orderid` , authMiddleware,  this.declineFinish);
@@ -49,6 +43,42 @@ class OrderController implements Controller {
   private getAllOrder = async (request: Request, response: Response, next: NextFunction) => {
       const rs = await this.orderRespotity.find({ relations: ["proposal" , "proposal.user" , "proposal.freelance" ] })
       response.send(rs)
+  }
+
+  private getFreelanceByOrderV1 = async (request :RequestWithUser , response : Response , next : NextFunction) => {
+    const id = request.user.id
+    const rs = await this.orderRespotity.createQueryBuilder("o")
+            .innerJoinAndSelect("o.proposal", "proposal")
+            .innerJoinAndSelect("proposal.freelance", "freelance")
+            .innerJoinAndSelect("freelance.profile", "profile")
+            .innerJoinAndSelect("profile.generalProfile", "generalProfile")
+            .where("proposal.userId = :id", { id })
+            .getMany();
+    const users : User[] = []
+    rs.forEach(r=>{
+      if(users.findIndex(u=>u.id === r.proposal.freelance.id) === -1){
+        users.push(r.proposal.freelance)
+      }
+    })
+    response.send(users)
+  }
+
+  private getFreelanceByOrder = async (request :RequestWithUser , response : Response , next : NextFunction) => {
+    const id = request.params.id
+    const rs = await this.orderRespotity.createQueryBuilder("o")
+            .innerJoinAndSelect("o.proposal", "proposal")
+            .innerJoinAndSelect("proposal.freelance", "freelance")
+            .innerJoinAndSelect("freelance.profile", "profile")
+            .innerJoinAndSelect("profile.generalProfile", "generalProfile")
+            .where("proposal.userId = :id", { id })
+            .getMany();
+    const users : User[] = []
+    rs.forEach(r=>{
+      if(users.findIndex(u=>u.id === r.proposal.freelance.id) === -1){
+        users.push(r.proposal.freelance)
+      }
+    })
+    response.send(users)
   }
 
 
