@@ -13,6 +13,7 @@ import PostNotFoundException from '../exceptions/PostNotFoundException';
 import { AuthTokenViewStat } from './AuthTokenToViewStat';
 import { UserType } from '../interfaces/UserType';
 import { ViewStat } from '../interfaces/ViewStat';
+import authMiddleware from '../middleware/auth.middleware';
 
 class JobPostController implements Controller {
   public path = '/jobpost';
@@ -26,6 +27,7 @@ class JobPostController implements Controller {
 
   private initializeRoutes() {
     this.router.get(`${this.path}/:id`, this.getJobById);
+    this.router.get(`${this.path}/user/all`, authMiddleware , this.getJobByUser);
     this.router.get(`${this.path}`, this.getAllJob);
     this.router.post(`${this.path}`, roleMiddleWare([UserType.User]), this.postJob);
     this.router.put(`${this.path}/:id`, permission(JobPost), this.updatePost);
@@ -71,6 +73,17 @@ class JobPostController implements Controller {
     } catch (error) {
       console.log(error)
       response.status(404).send("Wrong Id")
+    }
+  }
+
+  private getJobByUser = async (request: RequestWithUser, response: Response, next: NextFunction) => {
+    const id = request.user.id
+    try {
+      const rs = await this.jobPostRespotity.find({where:{user:{id:id}} , relations : ["proposals"]})
+      response.send(rs)
+    } catch (error) {
+      console.log(error)
+      response.status(400).send("Bad Request")
     }
   }
 
