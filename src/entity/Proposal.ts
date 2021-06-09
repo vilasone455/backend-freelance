@@ -21,12 +21,6 @@ export class Proposal {
     @Column({default : 0})
     budget : number
 
-    @Column({default : false})
-    freelanceAccept : boolean
-    
-    @Column({default : true})
-    userAccept : boolean
-
     @Column({default : 1})
     status : number
 

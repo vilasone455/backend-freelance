@@ -7,6 +7,7 @@ export interface EditProposal{
     budget:number
     desc:string
     jobPost?:number
-    user?:User
+    status?:number
+    user?:User|number
     freelance?:User|number
 }
