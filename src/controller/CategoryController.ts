@@ -25,8 +25,46 @@ class CategoryController implements Controller {
   private initializeRoutes() {
     this.router.get(`${this.path}` ,  this.getAllCategory);
     this.router.post(`${this.path}` , authMiddleware , this.addCategory);
+    this.router.post(`/subcategory` , authMiddleware , this.addSubCategory);
     this.router.put(`${this.path}/:id` , authMiddleware ,  this.updateCategory);
+    this.router.put(`/subcategory/:id` , authMiddleware ,  this.editSubCategory);
     this.router.delete(`${this.path}/:id` , authMiddleware ,  this.deleteCategory);
+    this.router.delete(`/subcategory/:id` , authMiddleware ,  this.deleteSubCategory);
+  }
+
+  private addSubCategory = async (request: RequestWithUser, response: Response, next: NextFunction) => {
+    if(request.user.userType !== 3) next(new BadPermissionExpections())
+    const subcategory : SubCategory = request.body
+    const subcats = await this.subCatRespotiy.save(subcategory)
+    response.send(subcats)
+  }
+
+  private deleteSubCategory = async (request: RequestWithUser, response: Response, next: NextFunction) => {
+    if(request.user.userType !== 3) next(new BadPermissionExpections())
+    const rs = await this.subCatRespotiy.delete(request.params.id)
+    response.send(rs)
+  }
+
+  private editSubCategory = async (request: RequestWithUser, response: Response, next: NextFunction) => {
+    if(request.user.userType !== 3) next(new BadPermissionExpections())
+    const category : SubCategory = request.body
+    const id = request.params.id
+    const cat = await this.subCatRespotiy.findOne(id)
+    try {
+      if(cat){
+        cat.category = category.category
+        cat.subCategoryName = category.subCategoryName
+        const rs = await this.subCatRespotiy.save(cat)
+        response.send(rs)
+      }else{
+        response.status(404).send("Not found")
+      }
+    } catch (error) {
+      console.log(error)
+      response.status(400).send(error)
+    }
+    
+    
   }
 
   private addCategory = async (request: RequestWithUser, response: Response, next: NextFunction) => {

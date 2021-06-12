@@ -1,4 +1,4 @@
-import {Entity, Column , PrimaryGeneratedColumn, ManyToOne} from "typeorm";
+import {Entity, Column , PrimaryGeneratedColumn, ManyToOne, CreateDateColumn} from "typeorm";
 
 import { User } from "./User";
 
@@ -12,11 +12,18 @@ export class Report  {
     user: User;
 
     @Column()
-    description : string;
-
-    @Column()
     sectionName: string;
 
+    @Column()
+    tableName: number;
+
+    @Column()
     objectId: number;
+
+    @Column()
+    description : string;
+
+    @CreateDateColumn()
+    createDate : Date;
 
 }

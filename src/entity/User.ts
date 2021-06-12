@@ -1,6 +1,7 @@
-import {Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn, OneToMany} from "typeorm";
+import {Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn, OneToMany, CreateDateColumn} from "typeorm";
 import { PriceItem } from "./Item";
 import { JobPost } from "./JobPost";
+import { Message } from "./Message";
 import { Order } from "./Order";
 import { Profile } from "./Profile";
 import { Proposal } from "./Proposal";
@@ -31,6 +32,9 @@ export class User {
     @JoinColumn()
     profile: Profile;
 
+    @CreateDateColumn()
+    createdDate: Date;
+
     @OneToMany(() => JobPost, j => j.user)
     jobPosts: JobPost[];
 
@@ -48,5 +52,11 @@ export class User {
 
     @OneToMany(()=>Proposal , p=>p.user)
     proposals : Proposal[]
+
+    @OneToMany(()=>Message , p=>p.sender)
+    senderMessages : Message[]
+
+    @OneToMany(()=>Message , p=>p.receiver)
+    receiverMessages : Message[]
 
 }

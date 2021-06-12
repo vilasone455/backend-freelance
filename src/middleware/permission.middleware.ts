@@ -10,7 +10,7 @@ import RequestWithEntity from 'src/interfaces/requestWithEntity.interface';
 
 
 
-function validationMiddleware<T>(entity : EntityTarget<T>): RequestHandler {
+function validationMiddleware<T>(entity : EntityTarget<T> , fieldName : string = "user"): RequestHandler {
     return async (req : RequestWithUser, res, next) => {
         const auth = req.headers["authorization"]
         console.log(auth)
