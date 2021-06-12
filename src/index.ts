@@ -17,6 +17,7 @@ import ProposalController from "./controller/ProposalController";
 import OrderController from "./controller/OrderController";
 import ReviewController from "./controller/ReviewController";
 import ReportController from "./controller/ReportController";
+import MessageController from "./controller/MessageController";
 
 
 const config : any = {
@@ -65,7 +66,8 @@ createConnection(config).then(async connection => {
         new TestController(),
         new OrderController(),
         new ReviewController(),
-        new ReportController()
+        new ReportController(),
+        new MessageController()
     ]
     
     controllers.forEach((controller) => {

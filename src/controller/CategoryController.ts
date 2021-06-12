@@ -70,8 +70,6 @@ class CategoryController implements Controller {
   private addCategory = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     if(request.user.userType !== 3) next(new BadPermissionExpections())
     const category : Category = request.body
-    const subcats = await this.subCatRespotiy.save(category.subCategorys)
-    category.subCategorys = subcats
     await this.categoryRespotity.save(category)
     response.send(category)
   }
@@ -84,8 +82,6 @@ class CategoryController implements Controller {
   private updateCategory = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     if(request.user.userType !== 3) next(new BadPermissionExpections())
     const category : Category = request.body
-    const subcats = await this.subCatRespotiy.save(category.subCategorys)
-    category.subCategorys = subcats
     await this.categoryRespotity.save(category)
     response.send(category)
    
@@ -94,6 +90,7 @@ class CategoryController implements Controller {
   private deleteCategory = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     if(request.user.userType !== 3) next(new BadPermissionExpections())
     const id = request.params.id
+    console.log(id)
     const rs = await this.categoryRespotity.delete(id)
     response.send(rs)
   }
