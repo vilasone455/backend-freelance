@@ -43,6 +43,7 @@
     "mysql": "^2.15.0",
     "onesignal-node": "^3.2.1",
     "pg": "^8.6.0",
+    "query-string": "^7.0.0",
     "typeorm": "^0.2.0"
   },
   "scripts": {

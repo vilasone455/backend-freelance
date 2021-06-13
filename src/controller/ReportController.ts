@@ -65,6 +65,11 @@ class ReportController implements Controller {
   }
 
   private getAllReportByUser = async (request: Request, response: Response, next: NextFunction) => {
+
+      const skip = Number(request.query["skip"]) || 0
+      const take = Number(request.query["take"]) || 5
+
+
       const rs = await getConnection().createQueryBuilder(Report , "r")
       .innerJoinAndSelect(User, 's', 'r.senderId = s.id')
       .innerJoinAndSelect(User, 'u', 'r.objectId = u.id')
@@ -79,6 +84,8 @@ class ReportController implements Controller {
         'u.userEmail'
       ])
       .where("r.tableName='user'")
+      .skip(skip)
+      .take(take)
       .getRawMany()
 
       const reportRs : ReportResponse[] = []
@@ -105,6 +112,10 @@ class ReportController implements Controller {
   }
 
   private getAllReportByPost = async (request: Request, response: Response, next: NextFunction) => {
+
+    const skip = Number(request.query["skip"]) || 0
+    const take = Number(request.query["take"]) || 5
+
     const rs = await getConnection().createQueryBuilder(Report , "r")
     .innerJoinAndSelect(User, 's', 'r.senderId = s.id')
     .innerJoinAndSelect(JobPost, 'j', 'r.objectId = j.id')
@@ -122,6 +133,8 @@ class ReportController implements Controller {
       'u.userEmail'
     ])
     .where("r.tableName='post'")
+    .skip(skip)
+    .take(take)
     .getRawMany()
 
     const reportRs : ReportResponse[] = []

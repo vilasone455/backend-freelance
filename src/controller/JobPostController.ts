@@ -47,7 +47,11 @@ class JobPostController implements Controller {
   }
 
   private getAllJob = async (request: Request, response: Response, next: NextFunction) => {
-    const rs = await this.jobPostRespotity.find({ relations: ["user", "category", "subCategory"] })
+    const skip = Number(request.query["skip"]) || 0
+    const take = Number(request.query["take"]) || 5
+    const rs = await this.jobPostRespotity.find({ 
+      relations: ["user", "category", "subCategory"] 
+      ,skip : skip , take : take})
     response.send(rs)
   }
 

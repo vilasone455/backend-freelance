@@ -45,7 +45,9 @@ class MessageController implements Controller {
   }
 
   private getAllMessage = async (request: Request, response: Response, next: NextFunction) => {
-      const rs = await this.messageRespotity.find({relations:["sender" , "receiver"]})
+      const skip = Number(request.query["skip"]) || 0
+      const take = Number(request.query["take"]) || 5
+      const rs = await this.messageRespotity.find({relations:["sender" , "receiver"],skip,take})
       response.send(rs)
   }
 

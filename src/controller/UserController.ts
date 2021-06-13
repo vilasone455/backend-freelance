@@ -45,7 +45,10 @@ class UserController implements Controller {
   }
 
   private getAllUser = async (request: Request, response: Response, next: NextFunction) => {
-    const users = await this.userRespotity.find({ relations: ["profile", "profile.address", "profile.generalProfile", "profile.generalProfile.category"] });
+    const skip = Number(request.query["skip"]) || 0
+    const take = Number(request.query["take"]) || 5
+    const users = await this.userRespotity.
+    find({ relations: ["profile", "profile.address", "profile.generalProfile", "profile.generalProfile.category"] , skip:skip,take:take });
     response.send(users)
   }
 
