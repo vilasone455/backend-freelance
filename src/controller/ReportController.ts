@@ -7,12 +7,30 @@ import { getRepository, In , getConnection } from 'typeorm';
 import RequestWithUser from '../interfaces/requestWithUser.interface';
 import authMiddleware from '../middleware/auth.middleware';
 
-
-import BadPermissionExpections from '../exceptions/BadPermissionExpection';
-import { Message } from '../entity/Message';
-import { UserType } from '../interfaces/UserType';
 import { Report } from '../entity/Report';
 import { User } from '../entity/User';
+import { JobPost } from '../entity/JobPost';
+
+interface UserReport{
+  id:number
+  userEmail:string
+}
+
+interface JobReport{
+  id:number
+  title:string
+  user : UserReport
+}
+
+interface ReportResponse{
+    id: number;
+    section: string;
+    description : string;
+    createDate : Date;
+    sender: UserReport;
+    jobPost ?: JobReport
+    user ?: UserReport
+}
 
 class ReportController implements Controller {
   public path = '/report';
@@ -26,6 +44,7 @@ class ReportController implements Controller {
   }
 
   private initializeRoutes() {
+    this.router.get(`${this.path}/post` ,  this.getAllReportByPost);
     this.router.get(`${this.path}/user` ,  this.getAllReportByUser);
     this.router.post(`${this.path}` , authMiddleware , this.addReport);
 
@@ -36,7 +55,6 @@ class ReportController implements Controller {
     const report : Report = request.body
     report.sender = user
     try {
-
         const rs = await this.reportRespotity.save(report)
         response.send(rs)
     } catch (error) {
@@ -47,14 +65,91 @@ class ReportController implements Controller {
   }
 
   private getAllReportByUser = async (request: Request, response: Response, next: NextFunction) => {
-      //const rs = await getConnection().createQueryBuilder(Report , "r")
-      //.select("r.id" , "r_id")
-      //.innerJoin(User, 'u', 'r.id = u.id')
-      //.getRawMany()
-      const rs = await this.reportRespotity.findOne(1)
-      //const rs = await this.reportRespotity.find({ relations: ["subCategorys"] })
-      response.send(rs)
+      const rs = await getConnection().createQueryBuilder(Report , "r")
+      .innerJoinAndSelect(User, 's', 'r.senderId = s.id')
+      .innerJoinAndSelect(User, 'u', 'r.objectId = u.id')
+      .select([
+        'r.id',
+        'r.section',
+        'r.description',
+        'r.createDate',
+        's.id',
+        's.userEmail',
+        'u.id',
+        'u.userEmail'
+      ])
+      .where("r.tableName='user'")
+      .getRawMany()
+
+      const reportRs : ReportResponse[] = []
+
+      rs.forEach(r=>{
+        const add : ReportResponse = {
+          id : r.r_id,
+          section : r.r_section,
+          description : r.r_description,
+          sender : {
+            id : r.s_id,
+            userEmail : r.s_userEmail
+          },
+          user : {
+            id : r.u_id,
+            userEmail : r.u_userEmail,
+          },
+          createDate : r.r_createDate
+        }
+        reportRs.push(add)
+      })
+
+      response.send(reportRs)
   }
+
+  private getAllReportByPost = async (request: Request, response: Response, next: NextFunction) => {
+    const rs = await getConnection().createQueryBuilder(Report , "r")
+    .innerJoinAndSelect(User, 's', 'r.senderId = s.id')
+    .innerJoinAndSelect(JobPost, 'j', 'r.objectId = j.id')
+    .innerJoinAndSelect(User, 'u', 'j.userId = u.id')
+    .select([
+      'r.id',
+      'r.section',
+      'r.description',
+      'r.createDate',
+      's.id',
+      's.userEmail',
+      'j.id',
+      'j.title',
+      'u.id',
+      'u.userEmail'
+    ])
+    .where("r.tableName='post'")
+    .getRawMany()
+
+    const reportRs : ReportResponse[] = []
+
+    rs.forEach(r=>{
+      const add : ReportResponse = {
+        id : r.r_id,
+        section : r.r_section,
+        description : r.r_description,
+        sender : {
+          id : r.s_id,
+          userEmail : r.s_userEmail
+        },
+        jobPost : {
+          id : r.j_id,
+          title : r.j_title,
+          user : {
+            id : r.u_id,
+            userEmail : r.u_userEmail
+          }
+        },
+        createDate : r.r_createDate
+      }
+      reportRs.push(add)
+    })
+
+    response.send(reportRs)
+}
 
 
 }
