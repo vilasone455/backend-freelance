@@ -44,9 +44,6 @@ export class User {
     @OneToMany(() => ServiceReview, s => s.user)
     serviceComments : ServiceReview[]
 
-    @OneToMany(() => Report, r => r.user)
-    reports : Report[]
-
     @OneToMany(()=>PriceItem , p=>p.user)
     priceItems : PriceItem[]
 
@@ -58,5 +55,10 @@ export class User {
 
     @OneToMany(()=>Message , p=>p.receiver)
     receiverMessages : Message[]
+
+    
+    @OneToMany(() => Report, r => r.sender)
+    reports : Report[]
+
 
 }

@@ -8,14 +8,12 @@ export class Report  {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne(() => User, u => u.reports)
-    user: User;
+    
+    @Column({default : "0"})
+    section: string;
 
     @Column()
-    sectionName: string;
-
-    @Column()
-    tableName: number;
+    tableName: string;
 
     @Column()
     objectId: number;
@@ -25,5 +23,9 @@ export class Report  {
 
     @CreateDateColumn()
     createDate : Date;
+
+    @ManyToOne(() => User, u => u.reports)
+    sender: User;
+
 
 }

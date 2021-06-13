@@ -33,8 +33,8 @@ class ReportController implements Controller {
 
   private addReport = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     const user = request.user
-    let report : Report = request.body
-    
+    const report : Report = request.body
+    report.sender = user
     try {
 
         const rs = await this.reportRespotity.save(report)
