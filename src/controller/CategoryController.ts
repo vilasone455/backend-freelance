@@ -70,12 +70,12 @@ class CategoryController implements Controller {
   private addCategory = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     if(request.user.userType !== 3) next(new BadPermissionExpections())
     const category : Category = request.body
-    await this.categoryRespotity.save(category)
-    response.send(category)
+    const rs = await this.categoryRespotity.save(category)
+    response.send(rs)
   }
 
   private getAllCategory = async (request: Request, response: Response, next: NextFunction) => {
-      const rs = await this.categoryRespotity.find({ relations: ["subCategorys"] })
+      const rs = await this.categoryRespotity.find({ relations: ["subCategorys"] , order:{id:"ASC"} } )
       response.send(rs)
   }
 

@@ -80,7 +80,7 @@ class MessageController implements Controller {
       console.log("pass")
       return response.send(rs)
     } catch (error) {
-        console.log("before error")
+        console.log("why not workkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk")
         console.log(error)
         
         return response.status(400).send("Bad Request")

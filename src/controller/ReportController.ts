@@ -64,6 +64,21 @@ class ReportController implements Controller {
     
   }
 
+  private getHomeReport = async (request: RequestWithUser, response: Response, next: NextFunction) => {
+    const user = request.user
+
+
+    try {
+        const rs = await getConnection().createQueryBuilder(User , "user").select("user.createDate").where("user.createDate")
+        response.send(rs)
+    } catch (error) {
+      console.log(error)
+        response.status(400).send("Bad Request")
+    }
+    
+  }
+
+
   private getAllReportByUser = async (request: Request, response: Response, next: NextFunction) => {
 
       const skip = Number(request.query["skip"]) || 0
@@ -87,6 +102,7 @@ class ReportController implements Controller {
       .skip(skip)
       .take(take)
       .getRawMany()
+      
 
       const reportRs : ReportResponse[] = []
 
