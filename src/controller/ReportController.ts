@@ -2,7 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 
 import Controller from '../interfaces/controller.interface';
 
-import { getRepository, In , getConnection } from 'typeorm';
+import { getRepository, In , getConnection, MoreThan } from 'typeorm';
 
 import RequestWithUser from '../interfaces/requestWithUser.interface';
 import authMiddleware from '../middleware/auth.middleware';
@@ -10,6 +10,7 @@ import authMiddleware from '../middleware/auth.middleware';
 import { Report } from '../entity/Report';
 import { User } from '../entity/User';
 import { JobPost } from '../entity/JobPost';
+import { UserType } from '../interfaces/UserType';
 
 interface UserReport{
   id:number
@@ -44,6 +45,7 @@ class ReportController implements Controller {
   }
 
   private initializeRoutes() {
+    this.router.get(`${this.path}/home` ,  this.getHomeReport);
     this.router.get(`${this.path}/post` ,  this.getAllReportByPost);
     this.router.get(`${this.path}/user` ,  this.getAllReportByUser);
     this.router.post(`${this.path}` , authMiddleware , this.addReport);
@@ -66,10 +68,25 @@ class ReportController implements Controller {
 
   private getHomeReport = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     const user = request.user
-
+    const date = new Date()
+    date.setHours(0,0,0,0);
 
     try {
-        const rs = await getConnection().createQueryBuilder(User , "user").select("user.createDate").where("user.createDate")
+        const userRes = getRepository(User)
+        const jobRes = getRepository(JobPost)
+
+        const freelanceCount = await userRes.count({where:{createdDate : MoreThan(date),userType : UserType.Freelance}})
+        const userCount = await userRes.count({where:{createdDate : MoreThan(date),userType : UserType.User}})
+        const jobCout = await jobRes.count({where:{createdDate : MoreThan(date)}})
+        //const reportCount = await this.reportRespotity.count({where:{createdDate : MoreThan(date)}})
+
+        const rs : any = {
+          freelance : freelanceCount,
+          user : userCount,
+          job : jobCout,
+          report : 0
+        }
+
         response.send(rs)
     } catch (error) {
       console.log(error)
