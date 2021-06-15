@@ -2,7 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 
 import Controller from '../interfaces/controller.interface';
 
-import { getRepository, In , getConnection, MoreThan } from 'typeorm';
+import { getRepository, In , getConnection, MoreThan, Between } from 'typeorm';
 
 import RequestWithUser from '../interfaces/requestWithUser.interface';
 import authMiddleware from '../middleware/auth.middleware';
@@ -33,6 +33,10 @@ interface ReportResponse{
     user ?: UserReport
 }
 
+//ລົບແລ້ວຍັງສະແດງຢູ່ ແຕ່ໃຫ້ບອກວ່າຄົນນັ້ນຖຶກແບນ
+//ລົບແລ້ວຂໍ້ມູນບໍ່ຫາຍ ເພາະຍາກໃຫ້ຜູ້ໃຊ້ຄົນອື່ນຮູ້ວ່າຜູ້ໃຊ້ນັ້ນຖຶກແບນ 
+//ແລະ ຖ້າລົບຂໍ້ມູນທີ່ກຽວຂ້ອງ ຜູ້ໃຊ້ຄົນອື່ນຈະສັບສົນວ່າຂໍ້ມູນນັ້ນໄປໃສ
+
 class ReportController implements Controller {
   public path = '/report';
   public router = Router();
@@ -45,6 +49,7 @@ class ReportController implements Controller {
   }
 
   private initializeRoutes() {
+    this.router.get(`${this.path}/user/traffic` ,  this.getTrifficUser);
     this.router.get(`${this.path}/home` ,  this.getHomeReport);
     this.router.get(`${this.path}/post` ,  this.getAllReportByPost);
     this.router.get(`${this.path}/user` ,  this.getAllReportByUser);
@@ -66,6 +71,47 @@ class ReportController implements Controller {
     
   }
 
+  private getTrifficUser = async (request: RequestWithUser, response: Response, next: NextFunction) => {
+    const user = request.user
+
+    const groupType = request.query["type"]
+    const dateStart = request.query["start"].toString()
+    const dateEnd = request.query["end"].toString()
+
+    const startDate = new Date(dateStart)
+    const endDate = new Date(dateEnd)
+    startDate.setHours(0,0,0,0);
+    endDate.setHours(0,0,0,0);
+
+    const curr = new Date; // get current date
+    const first = curr.getDate() - curr.getDay(); // First day is the day of the month - the day of the week
+    const last = first + 6; // last day is the first day + 6
+
+    //const firstday = new Date(curr.setDate(first))
+    //const lastday = new Date(curr.setDate(last))
+    //firstday.setHours(0,0,0,0);
+    //lastday.setHours(0,0,0,0);
+
+    try {
+      
+        const user = await getConnection().createQueryBuilder(User , "u")
+        .select([
+          `date_part('${groupType}', u.createdDate) as d`,
+          "count(u.id) as total"
+        ] )
+        .groupBy("d")
+        .where("u.createdDate >= :startDate AND u.createdDate <= :endDate" , {startDate : startDate , endDate : endDate} )
+        .getRawMany()
+     
+        response.send(user)
+    } catch (error) {
+      console.log(error)
+        response.status(400).send("Bad Request")
+    }
+    
+  }
+
+
   private getHomeReport = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     const user = request.user
     const date = new Date()
@@ -75,15 +121,15 @@ class ReportController implements Controller {
         const userRes = getRepository(User)
         const jobRes = getRepository(JobPost)
 
-        const freelanceCount = await userRes.count({where:{createdDate : MoreThan(date),userType : UserType.Freelance}})
-        const userCount = await userRes.count({where:{createdDate : MoreThan(date),userType : UserType.User}})
-        const jobCout = await jobRes.count({where:{createdDate : MoreThan(date)}})
+        const freelance = await userRes.find({where:{createdDate : MoreThan(date),userType : UserType.Freelance}})
+        const user = await userRes.find({where:{createdDate : MoreThan(date),userType : UserType.User}})
+        const job = await jobRes.find({where:{createdDate : MoreThan(date)}})
         //const reportCount = await this.reportRespotity.count({where:{createdDate : MoreThan(date)}})
 
         const rs : any = {
-          freelance : freelanceCount,
-          user : userCount,
-          job : jobCout,
+          freelance : freelance,
+          user : user,
+          job : job,
           report : 0
         }
 
