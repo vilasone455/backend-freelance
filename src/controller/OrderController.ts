@@ -48,6 +48,8 @@ class OrderController implements Controller {
     const id = request.user.id
     const rs = await this.orderRespotity.createQueryBuilder("o")
             .innerJoinAndSelect("o.proposal", "proposal")
+            .innerJoinAndSelect("o.payments", "payments")
+            .innerJoinAndSelect("o.workFiles", "workFiles")
             .innerJoinAndSelect("proposal.freelance", "freelance")
             .innerJoinAndSelect("freelance.profile", "profile")
             .innerJoinAndSelect("profile.generalProfile", "generalProfile")

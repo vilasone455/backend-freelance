@@ -1,8 +1,10 @@
 
-import {Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn, CreateDateColumn} from "typeorm";
+import {Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn, CreateDateColumn, OneToMany} from "typeorm";
+import { Payment } from "./Payment";
 
 import { Proposal } from "./Proposal";
 import { Review } from "./Review";
+import { WorkFile } from "./WorkFile";
 
 @Entity()
 export class Order {
@@ -27,4 +29,9 @@ export class Order {
     @JoinColumn()
     review : Review
 
+    @OneToMany(() => Payment, p => p.order)
+    payments : Payment[]
+
+    @OneToMany(() => WorkFile, w => w.order )
+    workFiles : WorkFile[]
 }
