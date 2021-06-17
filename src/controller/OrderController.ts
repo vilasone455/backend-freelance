@@ -22,6 +22,7 @@ class OrderController implements Controller {
     this.router.get(`${this.path}/user/all` , authMiddleware , this.getFreelanceByOrderV1);
     this.router.get(`${this.path}/user/:id` , this.getFreelanceByOrder);
     this.router.get(`${this.path}` , authMiddleware ,  this.getOrderByUser);
+    this.router.get(`${this.path}/info/:id` , authMiddleware ,  this.getOrderById);
     this.router.get(`${this.path}/sendfinish/:orderid` , authMiddleware ,  this.sendFinish);
     this.router.get(`${this.path}/canclefinish/:orderid` , authMiddleware,  this.declineFinish);
     this.router.get(`${this.path}/finish/:orderid` , authMiddleware, this.acceptFinishOrder);
@@ -39,6 +40,22 @@ class OrderController implements Controller {
     response.send(rs)
   }
 
+  private getOrderById = async (request: RequestWithUser, response: Response, next: NextFunction) => {
+    const id = Number(request.params.id)
+    const userId = request.user.id
+
+  
+    const rs = await this.orderRespotity.createQueryBuilder("o")
+            .innerJoinAndSelect("o.proposal", "proposal")
+            .leftJoinAndSelect("o.payments", "payments")
+            .leftJoinAndSelect("o.workFiles", "workFiles")
+            .leftJoinAndSelect("o.review", "r")
+            .where("o.id = :id AND (proposal.userId = :uId OR proposal.freelanceId = :uId)", { id: id, uId : userId })
+            .getOne()
+            
+    response.send(rs)
+}
+
   private getAllOrder = async (request: Request, response: Response, next: NextFunction) => {
       const rs = await this.orderRespotity.find({ relations: ["proposal" , "proposal.user" , "proposal.freelance" ] })
       response.send(rs)
@@ -48,8 +65,7 @@ class OrderController implements Controller {
     const id = request.user.id
     const rs = await this.orderRespotity.createQueryBuilder("o")
             .innerJoinAndSelect("o.proposal", "proposal")
-            .innerJoinAndSelect("o.payments", "payments")
-            .innerJoinAndSelect("o.workFiles", "workFiles")
+
             .innerJoinAndSelect("proposal.freelance", "freelance")
             .innerJoinAndSelect("freelance.profile", "profile")
             .innerJoinAndSelect("profile.generalProfile", "generalProfile")
