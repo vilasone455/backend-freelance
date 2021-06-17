@@ -1,4 +1,4 @@
-import {Entity, PrimaryGeneratedColumn, Column, ManyToOne} from "typeorm";
+import {Entity, PrimaryGeneratedColumn, Column, ManyToOne, UpdateDateColumn} from "typeorm";
 import { Order } from "./Order";
 
 @Entity()
@@ -15,6 +15,9 @@ export class Payment {
 
     @Column()
     amount: number;
+    
+    @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)", onUpdate: "CURRENT_TIMESTAMP(6)" })
+    updatedAt: Date;
 
     @ManyToOne(() => Order, o=>o.payments)
     order : Order    
