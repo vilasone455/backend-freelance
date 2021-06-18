@@ -10,8 +10,17 @@ export class WorkFile {
     @Column()
     fileName: string;
 
+    @Column({default : 0})
+    fileSize: number;
+
+    @Column({default : ""})
+    fileFormat: string;
+
     @Column()
     fileUrl: string;
+
+    @Column({default : ""})
+    refId: string;
 
     @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)", onUpdate: "CURRENT_TIMESTAMP(6)" })
     updatedAt: Date;

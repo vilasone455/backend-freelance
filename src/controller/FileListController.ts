@@ -16,6 +16,8 @@ import { WorkFile } from '../entity/WorkFile';
 import { Order } from '../entity/Order';
 import { User } from '../entity/User';
 import BadRequestExpection from '../exceptions/BadRequestExpection';
+import { v2 } from 'cloudinary'
+import * as Formidable from 'formidable';
 
 class FileListController implements Controller {
   public path = '/file';
@@ -50,18 +52,38 @@ class FileListController implements Controller {
   }
 
   private addFile = async (request: RequestWithUser, response: Response, next: NextFunction) => {
-    const user =request.user
-    const file : WorkFile = request.body
- 
-    const err = await this.isHavePermission(file , user)
-    if(err !== null) return next(err)
+    const user = request.user
 
-    try {
-        const rs = await this.fileRespotity.save(file)
-        response.send(rs)
-    } catch (error) {
-        response.status(400).send("Bad Request")
-    }
+    const form = new Formidable();
+
+      form.parse(request, async (err, fields, files) => {
+        let newFile : any = {order : fields.order}
+        try {
+          const f : File = files.file
+          console.log(f)
+          const err = await this.isHavePermission(newFile , user)
+          if(err !== null) return next(err)
+
+          let fileAdd = new WorkFile()
+
+          const fileRs = await v2.uploader.upload(files.file.path, { resource_type: "auto" })
+          fileAdd.order = fields.order
+          fileAdd.fileName = f.name.split(".")[0]
+          fileAdd.fileUrl = fileRs.secure_url
+          fileAdd.fileSize = fileRs.bytes
+          fileAdd.refId = fileRs.public_id
+          fileAdd.fileFormat = fileRs.format
+
+          const rs = await this.fileRespotity.save(fileAdd)
+          response.send(rs)
+        } catch (error) {
+          response.send(error)
+        }
+           
+    
+    });
+        
+    
     
   }
 
@@ -115,8 +137,9 @@ class FileListController implements Controller {
     }
 
     try {
-        await this.fileRespotity.delete(id)
-        response.send("Delete Success")
+        await v2.uploader.destroy(deleteItem.refId);
+        const rs = await this.fileRespotity.delete(id)
+        response.send(rs)
     } catch (error) {
       response.status(400).send("Bad Request")
     }
