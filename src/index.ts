@@ -21,6 +21,8 @@ import MessageController from "./controller/MessageController";
 import PaymentController from "./controller/PaymentController";
 import FileListController from "./controller/FileListController";
 
+import CloundFileController from "./controller/CloundFileController";
+import {v2} from 'cloudinary'
 
 const config : any = {
     "name": "default",
@@ -55,7 +57,16 @@ createConnection(config).then(async connection => {
         if ('OPTIONS' == req.method) { res.send(200); } else { next(); } 
     });
 
-    app.use(bodyParser.json());
+
+    
+    v2.config({
+      cloud_name: process.env.CLOUD_NAME,
+      api_key: process.env.API_KEY,
+      api_secret: process.env.API_SECRET
+    });
+
+    app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({extended: true}))
 
     let controllers : Controller[] = [
         new UserController(),
@@ -71,7 +82,8 @@ createConnection(config).then(async connection => {
         new ReportController(),
         new MessageController(),
         new PaymentController(),
-        new FileListController()
+        new FileListController(),
+        new CloundFileController()
     ]
     
     controllers.forEach((controller) => {

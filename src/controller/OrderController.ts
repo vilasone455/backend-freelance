@@ -7,6 +7,8 @@ import { OrderStat } from '../interfaces/OrderStat';
 import authMiddleware from '../middleware/auth.middleware';
 import { User } from 'src/entity/User';
 
+
+
 class OrderController implements Controller {
   public path = '/order';
   public router = Router();
@@ -15,6 +17,7 @@ class OrderController implements Controller {
 
   constructor() {
     this.initializeRoutes();
+    
   }
 
   private initializeRoutes() {
