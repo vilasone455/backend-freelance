@@ -1,4 +1,5 @@
 import {Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn, OneToMany, CreateDateColumn} from "typeorm";
+import { BanUser } from "./BanUser";
 import { PriceItem } from "./Item";
 import { JobPost } from "./JobPost";
 import { Message } from "./Message";
@@ -9,6 +10,9 @@ import { Report } from "./Report";
 import { Review } from "./Review";
 import { Service } from "./Service";
 import { ServiceReview } from "./ServiceReview";
+import { UnBanUser } from "./UnBanUser";
+import { WarnUser } from "./WarnUser";
+import { WorkFile } from "./WorkFile";
 
 @Entity()
 export class User {
@@ -27,6 +31,9 @@ export class User {
 
     @Column({default : 1})
     userType: number;
+
+    @Column({default : false})
+    isBan : boolean
 
     @OneToOne(() => Profile)
     @JoinColumn()
@@ -56,9 +63,28 @@ export class User {
     @OneToMany(()=>Message , p=>p.receiver)
     receiverMessages : Message[]
 
-    
+    @OneToMany(()=>WorkFile , f=>f.owner)
+    files : WorkFile[]
+
     @OneToMany(() => Report, r => r.sender)
     reports : Report[]
 
+    @OneToMany(()=> BanUser , b => b.user)
+    bans : BanUser[]
+
+    @OneToMany(()=> BanUser , b => b.admin)
+    adminBan : BanUser[]
+
+    @OneToMany(()=> WarnUser , w => w.user)
+    warns : WarnUser[]
+
+    @OneToMany(()=> WarnUser , w => w.admin)
+    adminWarn : WarnUser[]
+
+    @OneToMany(()=> UnBanUser , u => u.user)
+    unBans : UnBanUser[]
+
+    @OneToMany(()=> UnBanUser , u => u.admin)
+    adminUnBan : WarnUser[]
 
 }

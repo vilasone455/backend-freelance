@@ -1,5 +1,6 @@
 import {Entity, PrimaryGeneratedColumn, Column, ManyToOne, UpdateDateColumn} from "typeorm";
 import { Order } from "./Order";
+import { User } from "./User";
 
 @Entity()
 export class WorkFile {
@@ -24,6 +25,9 @@ export class WorkFile {
 
     @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)", onUpdate: "CURRENT_TIMESTAMP(6)" })
     updatedAt: Date;
+
+    @ManyToOne(() => User, u=>u.files)
+    owner : User
 
     @ManyToOne(() => Order, o=>o.workFiles)
     order : Order    

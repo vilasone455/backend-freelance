@@ -18,7 +18,7 @@ function permission1To1<T>(entity : EntityTarget<T> , entityName : string): Requ
                 const entityRes = getRepository(entity)
                 const cc = entityName
                 const rs = await entityRes.findOne({where : { [cc] : {"id" : id}} , relations : [entityName] })
-
+                
                 if(rs){
                     req.data =rs
                     next()

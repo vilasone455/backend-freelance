@@ -52,6 +52,7 @@ class OrderController implements Controller {
             .innerJoinAndSelect("o.proposal", "proposal")
             .leftJoinAndSelect("o.payments", "payments")
             .leftJoinAndSelect("o.workFiles", "workFiles")
+            .leftJoinAndSelect("workFiles.owner", "owner")
             .leftJoinAndSelect("o.review", "r")
             .where("o.id = :id AND (proposal.userId = :uId OR proposal.freelanceId = :uId)", { id: id, uId : userId })
             .getOne()
