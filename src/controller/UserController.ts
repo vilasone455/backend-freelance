@@ -14,6 +14,7 @@ import { BanUser } from '../entity/BanUser';
 import BadPermissionExpections from '../exceptions/BadPermissionExpection';
 import { UnBanUser } from '../entity/UnBanUser';
 import { WarnUser } from '../entity/WarnUser';
+import { getPagination } from '../util/pagination';
 
 class UserController implements Controller {
   public path = '/users';
@@ -29,6 +30,8 @@ class UserController implements Controller {
     this.router.get(`/usertoken`, this.getUserByToken);
     this.router.get(`${this.path}/:id`, this.getUserById);
     this.router.get(`${this.path}`, this.getAllUser);
+    this.router.get(`/freelances`, this.getAllFreelance);
+    this.router.get(`${this.path}all`, this.allUser);
     this.router.get(`${this.path}/jobs`, this.getAllJob);
     this.router.post(`${this.path}/ban`, authMiddleware , this.banUser);
     this.router.post(`${this.path}/unban`, authMiddleware , this.unBanUser);
@@ -37,6 +40,11 @@ class UserController implements Controller {
     this.router.get(`${this.path}/unban/all`, authMiddleware , this.getUnBanUser);
     this.router.get(`${this.path}/warn/all`, authMiddleware , this.getWarnUser);
 
+  }
+
+  private allUser = async (request: Request, response: Response, next: NextFunction) => {
+    const users = await this.userRespotity.find();
+    response.send(users)
   }
 
   private getAllJob = async (request: Request, response: Response, next: NextFunction) => {
@@ -58,74 +66,83 @@ class UserController implements Controller {
   }
 
   private banUser = async (request: RequestWithUser, response: Response, next: NextFunction) => {
+    const take = Number(request.query["take"]) || 5
     const user = request.user
-    console.log("do")
     if(user.userType !== 3) return next(new BadPermissionExpections())
     
     const banRes = getRepository(BanUser)
     const ban : BanUser = request.body
     const banuser = await this.userRespotity.findOne(ban.user)
     try {
-      let rs : BanUser = null
+
       console.log(banuser)
       if(banuser){
         if(banuser.userType === 3) return next(new BadPermissionExpections())
         banuser.isBan = true
         ban.admin = user
-        rs = await banRes.save(ban)
-        const u = await this.userRespotity.save(banuser)
-        console.log(u)
+        await banRes.save(ban)
+        await this.userRespotity.save(banuser)
+        const bans = await banRes.find({relations:["user" , "admin"] , order:{id:"DESC"} , skip : 0 , take : take  })
+        response.send(bans)
+      }else{
+        response.status(404).send("Cant find user")
       }
-      response.send(rs)
+      
     } catch (error) {
+      console.log(error)
       response.status(400).send("Error Cant Ban")
     }
     
   }
 
   private unBanUser = async (request: RequestWithUser, response: Response, next: NextFunction) => {
+    const take = Number(request.query["take"]) || 5
     const user = request.user
+    
     if(user.userType !== 3) return next(new BadPermissionExpections())
-    console.log("is admin")
     const unbanRes = getRepository(UnBanUser)
     const unBanData : UnBanUser = request.body
     const banUser = await this.userRespotity.findOne(unBanData.user)
     if(banUser){
-      console.log("found user")
-      console.log(banUser)
       if(banUser.userType === 3) return next(new BadPermissionExpections())
       if(banUser.isBan){
-        console.log("is ban")
         banUser.isBan = false
         unBanData.admin = user
         try {
           const rs = await unbanRes.save(unBanData)
           await this.userRespotity.save(banUser)
-          response.send(rs)
+          const unbans = await unbanRes.find({relations:["user" , "admin"] , order:{id:"DESC"} , skip : 0 , take : take  })
+          response.send(unbans)
         } catch (error) {
           response.status(400).send("Bad Request")
         }
       }else{
         return next(new BadPermissionExpections())
       }
+    }else{
+      response.status(404).send("Cant Find User")
     }
   }
 
   private warnUser = async (request: RequestWithUser, response: Response, next: NextFunction) => {
+    const take = Number(request.query["take"]) || 5
     const user = request.user
     if(user.userType !== 3) return next(new BadPermissionExpections())
     const warnRes = getRepository(WarnUser)
     const warn : WarnUser = request.body
     const warnuser = await this.userRespotity.findOne(warn.user)
     try {
-      let rs : WarnUser = null
+
       if(warnuser){
         if(warnuser.userType === 3 || warnuser.isBan) return next(new BadPermissionExpections())
         warn.admin = user
-        rs = await warnRes.save(warn)
-        response.send(rs)
+        await warnRes.save(warn)
+        const warns = await warnRes.find({relations:["user" , "admin"] , order:{id:"DESC"} , skip : 0 , take : take  })
+        response.send(warns)
+      }else{
+        response.status(404).send("User Cannot Find")
       }
-      response.send(rs)
+      
     } catch (error) {
       response.status(400).send("Error Cant Ban")
     }
@@ -134,11 +151,11 @@ class UserController implements Controller {
 
   private getWarnUser = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     const user = request.user
-    console.log(user)
     if(user.userType !== 3) return next(new BadPermissionExpections())
     const warnRes = getRepository(WarnUser)
+    let pag = getPagination(request)
     try {
-      const rs = await warnRes.find({relations:["user" , "admin"]})
+      const rs = await warnRes.find({relations:["user" , "admin"] , order:{id:"DESC"} , skip : pag.skip , take : pag.take})
       response.send(rs)
     } catch (error) {
       response.status(400).send("Bad Request")
@@ -148,12 +165,11 @@ class UserController implements Controller {
 
   private getBanUser = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     const user = request.user
-    console.log(user)
     if(user.userType !== 3) return next(new BadPermissionExpections())
     const banRes = getRepository(BanUser)
-   
+    let pag = getPagination(request)
     try {
-      const rs = await banRes.find({relations:["user" , "admin"]})
+      const rs = await banRes.find({relations:["user" , "admin"] , order:{id:"DESC"} , skip : pag.skip , take : pag.take })
       response.send(rs)
     } catch (error) {
       response.status(400).send("Bad Request")
@@ -165,8 +181,9 @@ class UserController implements Controller {
     const user = request.user
     if(user.userType !== 3) return next(new BadPermissionExpections())
     const unbanRes = getRepository(UnBanUser)
+    let pag = getPagination(request)
     try {
-      const rs = await unbanRes.find({relations:["user" , "admin"]})
+      const rs = await unbanRes.find({relations:["user" , "admin"] , order:{id:"DESC"} , skip : pag.skip , take : pag.take })
       response.send(rs)
     } catch (error) {
       response.status(400).send("Bad Request")
@@ -174,12 +191,39 @@ class UserController implements Controller {
     
   }
 
+  private getAllFreelance = async (request: Request, response: Response, next: NextFunction) => {
+
+    let pag = getPagination(request)
+    const users = await this.userRespotity
+      .createQueryBuilder('u')
+      .orderBy('u.id', "DESC")
+      .innerJoinAndSelect("u.profile" , "profile")
+      .innerJoinAndSelect("profile.generalProfile" , "generalProfile")
+      .innerJoinAndSelect("profile.address" , "address")
+      .where("u.userType=2")
+      .skip(pag.skip)
+      .take(pag.take)
+      .getMany()
+     
+    /*
+    const users = await this.userRespotity.
+    find({ relations: ["profile", "profile.address", "profile.generalProfile", "profile.generalProfile.category"] , 
+    order:{id:"ASC"} , skip:skip,take:take });
+    */
+    response.send(users)
+  }
+
 
   private getAllUser = async (request: Request, response: Response, next: NextFunction) => {
-    const skip = Number(request.query["skip"]) || 0
-    const take = Number(request.query["take"]) || 5
-    const users = await this.userRespotity.
-    find({ relations: ["profile", "profile.address", "profile.generalProfile", "profile.generalProfile.category"] , skip:skip,take:take });
+
+    let pag = getPagination(request)
+    const users = await this.userRespotity
+      .createQueryBuilder('user')
+      .orderBy('user.id', "DESC")
+      .skip(pag.skip)
+      .take(pag.take)
+      .getMany()
+
     response.send(users)
   }
 
