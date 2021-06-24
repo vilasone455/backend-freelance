@@ -82,8 +82,8 @@ class UserController implements Controller {
         ban.admin = user
         await banRes.save(ban)
         await this.userRespotity.save(banuser)
-        const bans = await banRes.find({relations:["user" , "admin"] , order:{id:"DESC"} , skip : 0 , take : take  })
-        response.send(bans)
+        const [data,count] = await banRes.findAndCount({relations:["user" , "admin"] , order:{id:"DESC"} , skip : 0 , take : take  })
+        response.send({count : count,val : data})
       }else{
         response.status(404).send("Cant find user")
       }
@@ -111,8 +111,8 @@ class UserController implements Controller {
         try {
           const rs = await unbanRes.save(unBanData)
           await this.userRespotity.save(banUser)
-          const unbans = await unbanRes.find({relations:["user" , "admin"] , order:{id:"DESC"} , skip : 0 , take : take  })
-          response.send(unbans)
+          const [data,count] = await unbanRes.findAndCount({relations:["user" , "admin"] , order:{id:"DESC"} , skip : 0 , take : take  })
+          response.send({count : count,val : data})
         } catch (error) {
           response.status(400).send("Bad Request")
         }
@@ -137,8 +137,8 @@ class UserController implements Controller {
         if(warnuser.userType === 3 || warnuser.isBan) return next(new BadPermissionExpections())
         warn.admin = user
         await warnRes.save(warn)
-        const warns = await warnRes.find({relations:["user" , "admin"] , order:{id:"DESC"} , skip : 0 , take : take  })
-        response.send(warns)
+        const [data,count] = await warnRes.findAndCount({relations:["user" , "admin"] , order:{id:"DESC"} , skip : 0 , take : take  })
+        response.send({count : count,val : data})
       }else{
         response.status(404).send("User Cannot Find")
       }
@@ -155,8 +155,8 @@ class UserController implements Controller {
     const warnRes = getRepository(WarnUser)
     let pag = getPagination(request)
     try {
-      const rs = await warnRes.find({relations:["user" , "admin"] , order:{id:"DESC"} , skip : pag.skip , take : pag.take})
-      response.send(rs)
+      const [data,count] = await warnRes.findAndCount({relations:["user" , "admin"] , order:{id:"DESC"} , skip : pag.skip , take : pag.take})
+      response.send({count : count,val : data})
     } catch (error) {
       response.status(400).send("Bad Request")
     }
@@ -169,8 +169,9 @@ class UserController implements Controller {
     const banRes = getRepository(BanUser)
     let pag = getPagination(request)
     try {
-      const rs = await banRes.find({relations:["user" , "admin"] , order:{id:"DESC"} , skip : pag.skip , take : pag.take })
-      response.send(rs)
+      const [data,count] = await banRes.findAndCount({relations:["user" , "admin"] , order:{id:"DESC"} , skip : pag.skip , take : pag.take })
+
+      response.send({count : count,val : data})
     } catch (error) {
       response.status(400).send("Bad Request")
     }
@@ -183,8 +184,9 @@ class UserController implements Controller {
     const unbanRes = getRepository(UnBanUser)
     let pag = getPagination(request)
     try {
-      const rs = await unbanRes.find({relations:["user" , "admin"] , order:{id:"DESC"} , skip : pag.skip , take : pag.take })
-      response.send(rs)
+      const [data,count] = await unbanRes.findAndCount({relations:["user" , "admin"] , order:{id:"DESC"} , skip : pag.skip , take : pag.take })
+
+      response.send({count : count,val : data})
     } catch (error) {
       response.status(400).send("Bad Request")
     }
@@ -194,7 +196,7 @@ class UserController implements Controller {
   private getAllFreelance = async (request: Request, response: Response, next: NextFunction) => {
 
     let pag = getPagination(request)
-    const users = await this.userRespotity
+    const [data , count] = await this.userRespotity
       .createQueryBuilder('u')
       .orderBy('u.id', "DESC")
       .innerJoinAndSelect("u.profile" , "profile")
@@ -203,28 +205,28 @@ class UserController implements Controller {
       .where("u.userType=2")
       .skip(pag.skip)
       .take(pag.take)
-      .getMany()
+      .getManyAndCount()
      
     /*
     const users = await this.userRespotity.
     find({ relations: ["profile", "profile.address", "profile.generalProfile", "profile.generalProfile.category"] , 
     order:{id:"ASC"} , skip:skip,take:take });
     */
-    response.send(users)
+    response.send({count : count,val : data})
   }
 
 
   private getAllUser = async (request: Request, response: Response, next: NextFunction) => {
 
     let pag = getPagination(request)
-    const users = await this.userRespotity
+    const [data , count] = await this.userRespotity
       .createQueryBuilder('user')
       .orderBy('user.id', "DESC")
       .skip(pag.skip)
       .take(pag.take)
-      .getMany()
+      .getManyAndCount()
 
-    response.send(users)
+      response.send({count : count,val : data})
   }
 
   private getUserById = async (request: Request, response: Response, next: NextFunction) => {
