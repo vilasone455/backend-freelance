@@ -17,29 +17,30 @@ class OrderController implements Controller {
 
   constructor() {
     this.initializeRoutes();
-    
   }
 
   private initializeRoutes() {
-    this.router.get(`${this.path}s` ,  this.getAllOrder);
-    this.router.get(`${this.path}/user/all` , authMiddleware , this.getFreelanceByOrderV1);
-    this.router.get(`${this.path}/user/:id` , this.getFreelanceByOrder);
-    this.router.get(`${this.path}` , authMiddleware ,  this.getOrderByUser);
-    this.router.get(`${this.path}/info/:id` , authMiddleware ,  this.getOrderById);
-    this.router.get(`${this.path}/sendfinish/:orderid` , authMiddleware ,  this.sendFinish);
-    this.router.get(`${this.path}/canclefinish/:orderid` , authMiddleware,  this.declineFinish);
-    this.router.get(`${this.path}/finish/:orderid` , authMiddleware, this.acceptFinishOrder);
+    this.router.get(`${this.path}s`, this.getAllOrder);
+    this.router.get(`${this.path}/user/all`, authMiddleware, this.getFreelanceByOrderV1);
+    //this.router.get(`${this.path}/user/:id` , this.getFreelanceByOrder);
+    this.router.get(`${this.path}`, authMiddleware, this.getOrderByUser);
+    this.router.get(`${this.path}/info/:id`, authMiddleware, this.getOrderById);
+    this.router.get(`${this.path}/sendfinish/:orderid`, authMiddleware, this.sendFinish);
+    this.router.get(`${this.path}/canclefinish/:orderid`, authMiddleware, this.declineFinish);
+    this.router.get(`${this.path}/finish/:orderid`, authMiddleware, this.acceptFinishOrder);
   }
 
   private getOrderByUser = async (request: RequestWithUser, response: Response, next: NextFunction) => {
-    const id = request.user.id 
-    console.log("user id : "+id)
+    const id = request.user.id
+    console.log("user id : " + id)
     const rs = await this.orderRespotity.createQueryBuilder("o")
-    .innerJoinAndSelect("o.proposal", "proposal")
-    .innerJoinAndSelect("proposal.freelance", "freelance")
-    .where("proposal.userId = :id or proposal.freelanceId=:id", { id })
-    .getMany()
-    
+      .innerJoinAndSelect("o.proposal", "proposal")
+      .leftJoinAndSelect("proposal.jobPost", "jobPost")
+      .innerJoinAndSelect("proposal.freelance", "freelance")
+      .leftJoinAndSelect("o.payments", "payments")
+      .where("proposal.userId = :id or proposal.freelanceId=:id", { id })
+      .getMany()
+
     response.send(rs)
   }
 
@@ -47,141 +48,124 @@ class OrderController implements Controller {
     const id = Number(request.params.id)
     const userId = request.user.id
 
-  
+
     const rs = await this.orderRespotity.createQueryBuilder("o")
-            .innerJoinAndSelect("o.proposal", "proposal")
-            .leftJoinAndSelect("o.payments", "payments")
-            .leftJoinAndSelect("o.workFiles", "workFiles")
-            .leftJoinAndSelect("workFiles.owner", "owner")
-            .leftJoinAndSelect("o.review", "r")
-            .where("o.id = :id AND (proposal.userId = :uId OR proposal.freelanceId = :uId)", { id: id, uId : userId })
-            .getOne()
-            
+      .innerJoinAndSelect("o.proposal", "proposal")
+      .leftJoinAndSelect("o.payments", "payments")
+      .leftJoinAndSelect("o.workFiles", "workFiles")
+      .leftJoinAndSelect("workFiles.owner", "owner")
+      .leftJoinAndSelect("o.review", "r")
+      .where("o.id = :id AND (proposal.userId = :uId OR proposal.freelanceId = :uId)", { id: id, uId: userId })
+      .getOne()
+
     response.send(rs)
-}
+  }
 
   private getAllOrder = async (request: Request, response: Response, next: NextFunction) => {
-      const rs = await this.orderRespotity.find({ relations: ["proposal" , "proposal.user" , "proposal.freelance" ] })
-      response.send(rs)
+    const rs = await this.orderRespotity.find({ relations: ["proposal", "proposal.user", "proposal.freelance"] })
+    response.send(rs)
   }
 
-  private getFreelanceByOrderV1 = async (request :RequestWithUser , response : Response , next : NextFunction) => {
+  private getFreelanceByOrderV1 = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     const id = request.user.id
     const rs = await this.orderRespotity.createQueryBuilder("o")
-            .innerJoinAndSelect("o.proposal", "proposal")
-
-            .innerJoinAndSelect("proposal.freelance", "freelance")
-            .innerJoinAndSelect("freelance.profile", "profile")
-            .innerJoinAndSelect("profile.generalProfile", "generalProfile")
-            .where("proposal.userId = :id", { id })
-            .getMany();
-    const users : User[] = []
-    rs.forEach(r=>{
-      if(users.findIndex(u=>u.id === r.proposal.freelance.id) === -1){
+      .innerJoinAndSelect("o.proposal", "proposal")
+      .leftJoinAndSelect("proposal.jobPost", "jobPost")
+      .innerJoinAndSelect("proposal.freelance", "freelance")
+      .innerJoinAndSelect("freelance.profile", "profile")
+      .innerJoinAndSelect("profile.generalProfile", "generalProfile")
+      .where("proposal.userId = :id", { id })
+      .getMany();
+    const users: User[] = []
+    rs.forEach(r => {
+      if (users.findIndex(u => u.id === r.proposal.freelance.id) === -1) {
         users.push(r.proposal.freelance)
       }
     })
     response.send(users)
   }
 
-  private getFreelanceByOrder = async (request :RequestWithUser , response : Response , next : NextFunction) => {
-    const id = request.params.id
-    const rs = await this.orderRespotity.createQueryBuilder("o")
-            .innerJoinAndSelect("o.proposal", "proposal")
-            .innerJoinAndSelect("proposal.freelance", "freelance")
-            .innerJoinAndSelect("freelance.profile", "profile")
-            .innerJoinAndSelect("profile.generalProfile", "generalProfile")
-            .where("proposal.userId = :id", { id })
-            .getMany();
-    const users : User[] = []
-    rs.forEach(r=>{
-      if(users.findIndex(u=>u.id === r.proposal.freelance.id) === -1){
-        users.push(r.proposal.freelance)
-      }
-    })
-    response.send(users)
-  }
 
 
   private acceptFinishOrder = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     const user = request.user
     const orderId = request.params.orderid
-    const order = await this.orderRespotity.findOne({where : {id:orderId},relations:["proposal" , "proposal.user"]})
-    if(order){
+    const order = await this.orderRespotity.findOne({ where: { id: orderId }, relations: ["proposal", "proposal.user"] })
+    if (order) {
       const isUser = order.proposal.user.id === user.id
-      if(isUser){
+      if (isUser) {
         order.orderStatus = OrderStat.Finish
         order.finishAt = new Date()
         await this.orderRespotity.save(order)
         response.send("Accept")
-      }else{
+      } else {
         return response.status(400).send("Bad Error")
       }
-    }else{
+    } else {
       response.status(404).send("Order Not Found")
     }
     //response.send(rs)
-  } 
+  }
 
   //user top cannot change status order which belong to user mon 
 
   private sendFinish = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     const user = request.user
     const orderId = request.params.orderid
-    const order = await this.orderRespotity.findOne({where : {id:orderId},relations:["proposal" , "proposal.freelance"]})
-    if(order){
+    const order = await this.orderRespotity.findOne({ where: { id: orderId }, relations: ["proposal", "proposal.freelance"] })
+    if (order) {
       const isFreelance = order.proposal.freelance.id === user.id
-      if(isFreelance){
+      if (isFreelance) {
         order.orderStatus = OrderStat.WaitForFinish
         await this.orderRespotity.save(order)
         response.send("Send Success")
-      }else{
+      } else {
         return response.status(400).send("Bad Error")
       }
-    }else{
+    } else {
       response.status(404).send("Order Not Found")
     }
-  
-  } 
+
+  }
 
   private declineFinish = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     const user = request.user
     const orderId = request.params.orderid
-    const order = await this.orderRespotity.findOne({where : {id:orderId},relations:["proposal" , "proposal.user"]})
-    if(order){
+    const order = await this.orderRespotity.findOne({ where: { id: orderId }, relations: ["proposal", "proposal.user"] })
+    if (order) {
       const isUser = order.proposal.user.id === user.id
-      if(isUser && order.orderStatus === OrderStat.WaitForFinish){
+      if (isUser && order.orderStatus === OrderStat.WaitForFinish) {
         order.orderStatus = OrderStat.Start
         await this.orderRespotity.save(order)
         response.send("Decline Finish")
-      }else{
+      } else {
         return response.status(400).send("Bad Error")
       }
-    }else{
+    } else {
       response.status(404).send("Order Not Found")
     }
-  
-  } 
+
+  }
 
   private cancleOrder = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     const user = request.user
     const orderId = request.params.orderid
-    const order = await this.orderRespotity.findOne({where : {id:orderId},relations:["proposal" , "proposal.freelance" , "proposal.user"]})
-    if(order){
+    const order = await this.orderRespotity.findOne({ where: { id: orderId }, relations: ["proposal", "proposal.freelance", "proposal.user"] })
+    if (order) {
       const isUser = order.proposal.user.id === user.id
       const isFreelance = order.proposal.freelance.id === user.id
-      if(isUser || isFreelance){
+      if (isUser || isFreelance) {
         order.orderStatus = OrderStat.Cancle
         await this.orderRespotity.save(order)
         response.send("Accept")
-      }else{
+      } else {
         return response.status(400).send("Bad Error")
       }
-    }else{
+    } else {
       response.status(404).send("Order Not Found")
     }
-  
-  } 
+
+  }
 
 
 
