@@ -14,6 +14,7 @@ import { AuthTokenViewStat } from './AuthTokenToViewStat';
 import { UserType } from '../interfaces/UserType';
 import { ViewStat } from '../interfaces/ViewStat';
 import authMiddleware from '../middleware/auth.middleware';
+import { getPagination } from '../util/pagination';
 
 class JobPostController implements Controller {
   public path = '/jobpost';
@@ -47,12 +48,22 @@ class JobPostController implements Controller {
   }
 
   private getAllJob = async (request: Request, response: Response, next: NextFunction) => {
-    const skip = Number(request.query["skip"]) || 0
-    const take = Number(request.query["take"]) || 5
-    const rs = await this.jobPostRespotity.find({ 
-      relations: ["user", "category", "subCategory"] 
-      ,skip : skip , take : take})
-    response.send(rs)
+    let category = request.query["category"]
+    
+      let pag = getPagination(request)
+      const chainQuery = this.jobPostRespotity
+        .createQueryBuilder('j')
+        .orderBy('j.id', "DESC")
+        .innerJoinAndSelect("j.user" , "user")
+        .where("user.userType=1 AND user.isBan=false")
+  
+        if(category) chainQuery.andWhere("j.categoryId= :catId" , {catId : category})
+  
+        const [data , count] = await chainQuery
+        .skip(pag.skip)
+        .take(pag.take)
+        .getManyAndCount()
+        response.send({count : count,val : data})
   }
 
   private updatePost = async (request: RequestWithUser, response: Response, next: NextFunction) => {

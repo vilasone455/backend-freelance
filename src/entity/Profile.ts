@@ -1,10 +1,12 @@
-import {Entity, PrimaryGeneratedColumn, Column, OneToMany, OneToOne, JoinColumn} from "typeorm";
+import {Entity, PrimaryGeneratedColumn, Column, OneToMany, OneToOne, JoinColumn, ManyToOne} from "typeorm";
 import { Address } from "./Address";
+import { Category } from "./Category";
 import { Education } from "./Education";
 import { GeneralProfile } from "./GeneralProfile";
 import { Language } from "./Language";
 import { Portfilio } from "./Portfilio";
 import { Skill } from "./Skill";
+import { SubCategory } from "./SubCategory";
 import { User } from "./User";
 import { WorkEx } from "./WorkEx";
 
@@ -16,6 +18,14 @@ export class Profile {
     @OneToOne(() => GeneralProfile , g=>g.profile)
     @JoinColumn()
     generalProfile: GeneralProfile;
+
+    @ManyToOne(() => Category)
+    @JoinColumn()
+    category : Category;
+
+    @ManyToOne(() => SubCategory)
+    @JoinColumn()
+    subCategory : SubCategory;
 
     @OneToOne(() => Address)
     @JoinColumn()

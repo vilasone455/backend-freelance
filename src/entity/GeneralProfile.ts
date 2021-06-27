@@ -12,14 +12,6 @@ export class GeneralProfile {
     @OneToOne(() => Profile, p => p.generalProfile)
     profile : Profile;
 
-    @ManyToOne(() => Category)
-    @JoinColumn()
-    category : Category;
-
-    @ManyToOne(() => SubCategory)
-    @JoinColumn()
-    subCategory : SubCategory;
-
     @Column()
     firstName: string;
 

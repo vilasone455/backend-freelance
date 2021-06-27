@@ -24,6 +24,9 @@ export class JobPost {
     @Column({default : 1})
     jobType: number;
 
+    @Column({default : "1"})
+    location: string;
+
     @Column({default : 1})
     experienceRequire: number;
 

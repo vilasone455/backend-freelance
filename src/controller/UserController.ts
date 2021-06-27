@@ -194,24 +194,23 @@ class UserController implements Controller {
   }
 
   private getAllFreelance = async (request: Request, response: Response, next: NextFunction) => {
-
+    let category = request.query["category"]
     let pag = getPagination(request)
-    const [data , count] = await this.userRespotity
+    const chainQuery = this.userRespotity
       .createQueryBuilder('u')
       .orderBy('u.id', "DESC")
       .innerJoinAndSelect("u.profile" , "profile")
       .innerJoinAndSelect("profile.generalProfile" , "generalProfile")
       .innerJoinAndSelect("profile.address" , "address")
-      .where("u.userType=2")
+      .where("u.userType=2 AND u.isBan=false")
+
+      if(category) chainQuery.andWhere("profile.categoryId= :catId" , {catId : category})
+
+      const [data , count] = await chainQuery
       .skip(pag.skip)
       .take(pag.take)
       .getManyAndCount()
-     
-    /*
-    const users = await this.userRespotity.
-    find({ relations: ["profile", "profile.address", "profile.generalProfile", "profile.generalProfile.category"] , 
-    order:{id:"ASC"} , skip:skip,take:take });
-    */
+
     response.send({count : count,val : data})
   }
 

@@ -32,6 +32,9 @@ export class User {
     @Column({default : 1})
     userType: number;
 
+    @Column({default : ""})
+    image: string;
+
     @Column({default : false})
     isBan : boolean
 
