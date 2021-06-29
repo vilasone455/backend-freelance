@@ -4,13 +4,15 @@ import UserWithThatEmailAlreadyExistsException from '../exceptions/UserWithThatE
 import DataStoredInToken from '../interfaces/dataStoredInToken';
 import TokenData from '../interfaces/tokenData.interface';
 
-import {CreateUserDto} from '../dto/CreateUser.dto';
+import {CreateFreelanceDto, CreateUserDto} from '../dto/CreateUser.dto';
 
 import {User} from "../entity/User";
 import { getRepository } from 'typeorm';
+import { Profile } from 'src/entity/Profile';
 
 class AuthenticationService {
   public userRepository = getRepository(User);
+
 
   public async register(userData: CreateUserDto , isAdmin : boolean = false) {
 
@@ -23,14 +25,23 @@ class AuthenticationService {
       if(userData.userType === 3) userData.userType = 1
     }
 
+
+
     const hashedPassword = await bcrypt.hash(userData.userPassword, 10);
-    const user = await this.userRepository.save({
-      ...userData,
-      userPassword: hashedPassword,
-    })
+
+    const u = new User()
+    u.userName = userData.userName
+    u.userEmail = userData.userEmail
+    u.userPassword = hashedPassword
+    u.userType = userData.userType
+    console.log(u)
+    const user = await this.userRepository.save(u)
+
 
     const tokenData = this.createToken(user);
+
     const cookie = this.createCookie(tokenData);
+
     return {
       cookie,
       user,

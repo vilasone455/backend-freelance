@@ -9,12 +9,13 @@ import validationMiddleware from '../middleware/validation.middleware';
 
 import { Profile } from '../entity/Profile';
 import { User } from '../entity/User';
-import { CreateUserDto } from '../dto/CreateUser.dto'
+import { CreateFreelanceDto, CreateUserDto, UserDtoToProfile } from '../dto/CreateUser.dto'
 
 import AuthenticationService from './authentication.service';
 import LogInDto from './logIn.dto';
 import { getRepository } from 'typeorm';
 import BadPermissionExpections from '../exceptions/BadPermissionExpection';
+import { Address } from '../entity/Address';
 
 
 class AuthenticationController implements Controller {
@@ -29,7 +30,8 @@ class AuthenticationController implements Controller {
 
   private initializeRoutes() {
     this.router.post(`${this.path}/admin-register/:appkey`, validationMiddleware(CreateUserDto), this.registrationAdmin);
-    this.router.post(`${this.path}/register`, validationMiddleware(CreateUserDto), this.registration);
+    this.router.post(`${this.path}/register/user`, [validationMiddleware(CreateUserDto)], this.registration);
+    this.router.post(`${this.path}/register/freelance`, [validationMiddleware(CreateFreelanceDto)], this.registerFreelance);
     this.router.post(`${this.path}/login`, this.loggingIn);
     this.router.post(`${this.path}/logout`, this.loggingOut);
   }
@@ -37,14 +39,42 @@ class AuthenticationController implements Controller {
   private registrationAdmin = async (request: Request, response: Response, next: NextFunction) => {
     const key = request.params.appkey
     if (key !== process.env.SECRET_KEY) next(new BadPermissionExpections())
-    const userData: CreateUserDto = request.body;
+    const userData: CreateFreelanceDto = request.body;
     try {
       const {
         cookie,
         user,
       } = await this.authenticationService.register(userData, true);
 
+      const profileRes = getRepository(Profile)
+      //const profile = await profileRes.save(userData.profile)
+      //profile
+
       response.send(user);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  private registerFreelance = async (request: Request, response: Response, next: NextFunction) => {
+    const userData: CreateFreelanceDto = request.body;
+    try {
+      const {
+        cookie,
+        user,
+      } = await this.authenticationService.register(userData);
+      console.log("work")
+      const profileRes = getRepository(Profile)
+      const addressRes = getRepository(Address)
+      const tokenData = this.createToken(user)
+      const address = await addressRes.save(userData.profile.address)
+
+      const profile = UserDtoToProfile(userData)
+      profile["userId"] = user.id
+      profile.address = address
+      await profileRes.save(profile)
+      
+      response.send({...user , tokenData});
     } catch (error) {
       next(error);
     }

@@ -73,7 +73,6 @@ class OrderController implements Controller {
       .leftJoinAndSelect("proposal.jobPost", "jobPost")
       .innerJoinAndSelect("proposal.freelance", "freelance")
       .innerJoinAndSelect("freelance.profile", "profile")
-      .innerJoinAndSelect("profile.generalProfile", "generalProfile")
       .where("proposal.userId = :id", { id })
       .getMany();
     const users: User[] = []

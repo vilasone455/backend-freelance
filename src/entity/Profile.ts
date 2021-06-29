@@ -2,7 +2,7 @@ import {Entity, PrimaryGeneratedColumn, Column, OneToMany, OneToOne, JoinColumn,
 import { Address } from "./Address";
 import { Category } from "./Category";
 import { Education } from "./Education";
-import { GeneralProfile } from "./GeneralProfile";
+//import { GeneralProfile } from "./GeneralProfile";
 import { Language } from "./Language";
 import { Portfilio } from "./Portfilio";
 import { Skill } from "./Skill";
@@ -15,9 +15,25 @@ export class Profile {
 
     @PrimaryGeneratedColumn()
     id: number;
-    @OneToOne(() => GeneralProfile , g=>g.profile)
-    @JoinColumn()
-    generalProfile: GeneralProfile;
+    
+
+    @Column({default : ""})
+    firstName: string;
+
+    @Column({default : ""})
+    lastName: string;
+
+    @Column({default : () => "CURRENT_TIMESTAMP(6)"})
+    birthDate: Date;
+
+    @Column({default : ""})
+    jobType: string;
+
+    @Column({default : "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam"})
+    aboutMe: string;
+
+    @Column({default : 1})
+    gender: number;
 
     @ManyToOne(() => Category)
     @JoinColumn()

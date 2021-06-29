@@ -43,6 +43,7 @@ class UserController implements Controller {
   }
 
   private allUser = async (request: Request, response: Response, next: NextFunction) => {
+    
     const users = await this.userRespotity.find();
     response.send(users)
   }
@@ -200,7 +201,6 @@ class UserController implements Controller {
       .createQueryBuilder('u')
       .orderBy('u.id', "DESC")
       .innerJoinAndSelect("u.profile" , "profile")
-      .innerJoinAndSelect("profile.generalProfile" , "generalProfile")
       .innerJoinAndSelect("profile.address" , "address")
       .where("u.userType=2 AND u.isBan=false")
 
@@ -232,7 +232,8 @@ class UserController implements Controller {
     const auth = request.headers["authorization"]
     
     const id = request.params.id;
-    const user = await this.userRespotity.findOne({ relations: ["profile", "profile.educations" ,  "profile.address", "profile.generalProfile", "profile.workExs", "profile.portfilios" , "profile.generalProfile.category" , "profile.generalProfile.subCategory" , "profile.languages"] , where : {
+    const user = await this.userRespotity.findOne({ relations: ["profile", "profile.educations" ,  "profile.address", 
+    "profile.workExs", "profile.portfilios" ,  "profile.languages"] , where : {
       id : Number(id)
     } });    
     try {

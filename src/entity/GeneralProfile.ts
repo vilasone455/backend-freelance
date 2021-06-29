@@ -3,6 +3,7 @@ import { Category } from "./Category";
 import { Profile } from "./Profile";
 import { SubCategory } from "./SubCategory";
 
+/*
 @Entity()
 export class GeneralProfile {
 
@@ -27,9 +28,8 @@ export class GeneralProfile {
     @Column()
     aboutMe: string;
 
-    @Column()
-    gender: string;
+    @Column({default : 1})
+    gender: number;
 
-    @Column()
-    photo: string;
 }
+*/

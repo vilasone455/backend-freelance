@@ -7,7 +7,7 @@ import UserNotFoundException from '../exceptions/UserNotFoundException';
 import { getRepository } from 'typeorm';
 import { User } from '../entity/User';
 import { Address } from '../entity/Address';
-import { GeneralProfile } from '../entity/GeneralProfile';
+//import { GeneralProfile } from '../entity/GeneralProfile';
 import { WorkEx } from '../entity/WorkEx';
 import { Education } from '../entity/Education';
 import { Portfilio } from '../entity/Portfilio';
@@ -84,9 +84,9 @@ class ProfileController implements Controller {
         const newAddress = await addressRes.save(profile.address)
         profile.address = newAddress
       } else if (field === "general") {
-        const generalRes = getRepository(GeneralProfile)
-        const general = await generalRes.save(profile.generalProfile)
-        profile.generalProfile = general
+      //  const generalRes = getRepository(GeneralProfile)
+     //   const general = await generalRes.save(profile.generalProfile)
+      //  profile.generalProfile = general
       } else if (field === "workexs") {
         const workExRes = getRepository(WorkEx)
         const workExs = await workExRes.save(profile.workExs)
@@ -116,21 +116,21 @@ class ProfileController implements Controller {
 
     try {
       const addressRes = getRepository(Address)
-      const generalRes = getRepository(GeneralProfile)
+     // const generalRes = getRepository(GeneralProfile)
       const workExRes = getRepository(WorkEx)
       const lanRes = getRepository(Language)
       const educationRes = getRepository(Education)
       const portfilioRes = getRepository(Portfilio)
 
       const newAddress = await addressRes.save(profile.address)
-      const newGeneral = await generalRes.save(profile.generalProfile)
+     // const newGeneral = await generalRes.save(profile.generalProfile)
       const workExs = await workExRes.save(profile.workExs)
       const lans = await lanRes.save(profile.languages)
       const educations = await educationRes.save(profile.educations)
       const portfilios = await portfilioRes.save(profile.portfilios)
 
       profile.address = newAddress
-      profile.generalProfile = newGeneral
+     // profile.generalProfile = newGeneral
       profile.workExs = workExs
       profile.languages = lans
       profile.educations = educations
@@ -155,7 +155,7 @@ class ProfileController implements Controller {
     let profile: Profile = request.body
 
     const addressRes = getRepository(Address)
-    const generalRes = getRepository(GeneralProfile)
+ //   const generalRes = getRepository(GeneralProfile)
     const workExRes = getRepository(WorkEx)
     const lanRes = getRepository(Language)
     const educationRes = getRepository(Education)
@@ -164,7 +164,7 @@ class ProfileController implements Controller {
     if (user) {
 
       const newAddress = await addressRes.save(profile.address)
-      const newGeneral = await generalRes.save(profile.generalProfile)
+     // const newGeneral = await generalRes.save(profile.generalProfile)
       const workExs = await workExRes.save(profile.workExs)
       const lans = await lanRes.save(profile.languages)
       const educations = await educationRes.save(profile.educations)
@@ -172,7 +172,7 @@ class ProfileController implements Controller {
 
 
       profile.address = newAddress
-      profile.generalProfile = newGeneral
+    //  profile.generalProfile = newGeneral
       profile.workExs = workExs
       profile.languages = lans
       profile.educations = educations
