@@ -25,8 +25,6 @@ class AuthenticationService {
       if(userData.userType === 3) userData.userType = 1
     }
 
-
-
     const hashedPassword = await bcrypt.hash(userData.userPassword, 10);
 
     const u = new User()
@@ -34,6 +32,7 @@ class AuthenticationService {
     u.userEmail = userData.userEmail
     u.userPassword = hashedPassword
     u.userType = userData.userType
+    u.image = userData.image
     console.log(u)
     const user = await this.userRepository.save(u)
 

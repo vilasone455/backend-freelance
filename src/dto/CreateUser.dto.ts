@@ -10,6 +10,7 @@ export class CreateUserDto {
     @MaxLength(25)
     public userPassword : string
     public userType : number
+    public image: string;
 
     public toUser(){
         
