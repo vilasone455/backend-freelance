@@ -3,7 +3,7 @@ import { BanUser } from "./BanUser";
 import { PriceItem } from "./Item";
 import { JobPost } from "./JobPost";
 import { Message } from "./Message";
-import { Order } from "./Order";
+
 import { Profile } from "./Profile";
 import { Proposal } from "./Proposal";
 import { Report } from "./Report";
@@ -38,7 +38,7 @@ export class User {
     @Column({default : false})
     isBan : boolean
 
-    @OneToOne(() => Profile)
+    @OneToOne(() => Profile, profile => profile.user) 
     @JoinColumn()
     profile: Profile;
 

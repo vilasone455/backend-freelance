@@ -15,7 +15,9 @@ export class Profile {
 
     @PrimaryGeneratedColumn()
     id: number;
-    
+
+    @OneToOne(() => User, user => user.profile) // specify inverse side as a second paramet
+    user: User;
 
     @Column({default : ""})
     firstName: string;

@@ -58,22 +58,22 @@ class AuthenticationController implements Controller {
 
   private registerFreelance = async (request: Request, response: Response, next: NextFunction) => {
     const userData: CreateFreelanceDto = request.body;
+    
     try {
       const {
         cookie,
         user,
       } = await this.authenticationService.register(userData);
-      console.log("work")
       const profileRes = getRepository(Profile)
       const addressRes = getRepository(Address)
       const tokenData = this.createToken(user)
       const address = await addressRes.save(userData.profile.address)
 
       const profile = UserDtoToProfile(userData)
-      profile["userId"] = user.id
+      profile.user = user
       profile.address = address
       await profileRes.save(profile)
-      
+            
       response.send({...user , tokenData});
     } catch (error) {
       next(error);
