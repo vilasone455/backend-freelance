@@ -7,12 +7,13 @@ import { getRepository, In } from 'typeorm';
 import RequestWithUser from '../interfaces/requestWithUser.interface';
 import authMiddleware from '../middleware/auth.middleware';
 
-
 import BadPermissionExpections from '../exceptions/BadPermissionExpection';
 import { Review } from '../entity/Review';
 import { Order } from '../entity/Order';
 import { OrderStat } from '../interfaces/OrderStat';
-import { Proposal } from 'src/entity/Proposal';
+
+import { ReviewResponse } from '../interfaces/ReviewResponse';
+import { getPagination } from '../util/pagination';
 
 class ReviewController implements Controller {
   public path = '/review';
@@ -25,47 +26,89 @@ class ReviewController implements Controller {
   }
 
   private initializeRoutes() {
-    this.router.get(`${this.path}/:freelanceid` ,  this.getReviewByUser);
-    this.router.post(`${this.path}/:orderid` , authMiddleware , this.addReview);
-   
+    this.router.get(`${this.path}`, this.allReviews);
+    this.router.get(`${this.path}/user/:freelanceid`, this.getReviewByUser);
+    this.router.post(`${this.path}/:orderid`, authMiddleware, this.addReview);
+
   }
+
+
+  private allReviews = async (request: Request, response: Response, next: NextFunction) => {
+    const rs = await this.reviewRespoity.find({ relations: ["freelance" , "order" , "order.proposal" , "order.proposal.freelance"] })
+    response.send(rs)
+  }
+
+  private setEmplyFreelance = async (request: Request, response: Response, next: NextFunction) => {
+    const rs = await this.reviewRespoity.find({ relations: ["freelance" , "order" , "order.proposal" , "order.proposal.freelance"] })
+    rs.forEach(r => {
+      if(r.freelance){
+        r.freelance = r.order.proposal.freelance
+        //await this.reviewRespoity.save(r)
+      }
+    });
+    response.send(rs)
+  }
+
 
   private addReview = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     const orderid = request.params.orderid
-    const review : Review = request.body
+    const review: Review = request.body
     const user = request.user
     const orderRes = getRepository(Order)
 
-    const order = await orderRes.findOne({relations: ["proposal" , "proposal.user" , "review"] , where : {id:orderid , orderStatus : OrderStat.Finish}})
-    if(order){
-        console.log(order.review)
-        if(order.review !== undefined) return response.status(400).send("You already review")
-            if(order.proposal.user.id === user.id){
-                review.order = order
-                const rs = await this.reviewRespoity.save(review)
-                response.send(rs)
-            }else{
-                next(new BadPermissionExpections())
-            }
-        }else{
-            response.status(404).send("Order Not found")
+    const order = await orderRes.findOne({ relations: ["proposal", "proposal.user", "review"], where: { id: orderid, orderStatus: OrderStat.Finish } })
+    if (order) {
+      console.log(order.review)
+      if (order.review !== undefined) return response.status(400).send("You already review")
+      if (order.proposal.user.id === user.id) {
+        review.order = order
+        const rs = await this.reviewRespoity.save(review)
+        response.send(rs)
+      } else {
+        next(new BadPermissionExpections())
+      }
+    } else {
+      response.status(404).send("Order Not found")
     }
   }
-    
-    
-    //is that freelance have order of you and is that order finished 
-  
+
+  //is that freelance have order of you and is that order finished 
 
   private getReviewByUser = async (request: Request, response: Response, next: NextFunction) => {
+    const pag = getPagination(request)
+    const id = request.params.freelanceid
+  
+    console.log("get review " + id)
 
-      const freelanceId = request.params.freelanceid
-      const orderRes = getRepository(Order)
-      const myOrder = await orderRes.find({
-      where:{proposal:{freelance : freelanceId}},relations:['proposal' , 'proposal.freelance' , 'review']})
-      response.send(myOrder)
+    const reviewList = await this.reviewRespoity.createQueryBuilder("r")
+    .leftJoinAndSelect("r.order" , "order")
+    .leftJoinAndSelect("order.proposal" , "proposal")
+    .leftJoinAndSelect("proposal.jobPost", "jobPost")
+    .leftJoinAndSelect("proposal.user" , "user")
+    .where("proposal.freelanceId = :id" , {id:id})
+    .skip(pag.skip)
+    .take(pag.take)
+    .getMany()
+
+      console.log("get success")
+    const reviewRs: ReviewResponse[] = []
+    reviewList.forEach(r => {
+      const order = r.order
+      let title = (order.proposal.jobPost) ? order.proposal.jobPost.title : order.proposal.title
+      let add: ReviewResponse = {
+        title,
+        userName : order.proposal.user.userName,
+        review: r.comment,
+        score: r.productScore,
+        reviewAt: r.createDate
+      }
+      reviewRs.push(add)
+    });
+    
+    response.send(reviewRs)
   }
 
-  
+
 }
 
 export default ReviewController;

@@ -12,6 +12,9 @@ export class Order {
     @PrimaryGeneratedColumn()
     id: number;
 
+    @Column({default : ""})
+    orderTitle: string;
+
     @Column()
     orderStatus: number;
 
@@ -20,6 +23,9 @@ export class Order {
 
     @Column({default : () => "CURRENT_TIMESTAMP(6)"})
     finishAt: Date;
+
+    //freelance
+    //user
 
     @OneToOne(() => Proposal)
     @JoinColumn()

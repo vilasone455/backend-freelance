@@ -1,6 +1,6 @@
 import {Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn, OneToMany, CreateDateColumn} from "typeorm";
 import { BanUser } from "./BanUser";
-import { PriceItem } from "./Item";
+
 import { JobPost } from "./JobPost";
 import { Message } from "./Message";
 
@@ -8,8 +8,7 @@ import { Profile } from "./Profile";
 import { Proposal } from "./Proposal";
 import { Report } from "./Report";
 import { Review } from "./Review";
-import { Service } from "./Service";
-import { ServiceReview } from "./ServiceReview";
+
 import { UnBanUser } from "./UnBanUser";
 import { WarnUser } from "./WarnUser";
 import { WorkFile } from "./WorkFile";
@@ -48,14 +47,8 @@ export class User {
     @OneToMany(() => JobPost, j => j.user)
     jobPosts: JobPost[];
 
-    @OneToMany(() => Service, s => s.user)
-    services : Service[]
-
-    @OneToMany(() => ServiceReview, s => s.user)
-    serviceComments : ServiceReview[]
-
-    @OneToMany(()=>PriceItem , p=>p.user)
-    priceItems : PriceItem[]
+    @OneToMany(() => Review, r => r.freelance)
+    reviews: Review[];
 
     @OneToMany(()=>Proposal , p=>p.user)
     proposals : Proposal[]

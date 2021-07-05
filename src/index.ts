@@ -9,7 +9,7 @@ import UserController from './controller/UserController'
 import AuthenticationController from "./authentication/authentication.controller";
 import ProfileController from "./controller/ProfileController";
 import JobPostController from "./controller/JobPostController";
-import ServiceController from "./controller/ServiceController";
+
 import CategoryController from "./controller/CategoryController";
 import "./initenv"
 import TestController from "./controller/TestController";
@@ -73,7 +73,6 @@ app.use(bodyParser.urlencoded({extended: true}))
         new AuthenticationController(),
         new ProfileController(),
         new JobPostController(),
-        new ServiceController(),
         new CategoryController(),
         new ProposalController(),
         new TestController(),

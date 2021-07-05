@@ -5,7 +5,8 @@ import RequestWithUser from '../interfaces/requestWithUser.interface';
 import { Order } from '../entity/Order';
 import { OrderStat } from '../interfaces/OrderStat';
 import authMiddleware from '../middleware/auth.middleware';
-import { User } from 'src/entity/User';
+import { User } from '../entity/User';
+import BadPermissionExpections from '../exceptions/BadPermissionExpection';
 
 
 
@@ -48,7 +49,6 @@ class OrderController implements Controller {
     const id = Number(request.params.id)
     const userId = request.user.id
 
-
     const rs = await this.orderRespotity.createQueryBuilder("o")
       .innerJoinAndSelect("o.proposal", "proposal")
       .leftJoinAndSelect("o.payments", "payments")
@@ -58,7 +58,13 @@ class OrderController implements Controller {
       .where("o.id = :id AND (proposal.userId = :uId OR proposal.freelanceId = :uId)", { id: id, uId: userId })
       .getOne()
 
-    response.send(rs)
+    if(rs){
+      response.send(rs)
+    }else{
+      next(new BadPermissionExpections())
+    }
+
+    
   }
 
   private getAllOrder = async (request: Request, response: Response, next: NextFunction) => {

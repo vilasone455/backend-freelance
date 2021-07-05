@@ -1,5 +1,5 @@
 
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, OneToOne, ManyToOne, CreateDateColumn } from "typeorm";
 import { Order } from "./Order";
 
 import { User } from "./User";
@@ -9,6 +9,9 @@ export class Review {
 
     @PrimaryGeneratedColumn()
     id: number;
+
+    @CreateDateColumn()
+    createDate: Date;
 
     @Column()
     comment: string;
@@ -27,4 +30,8 @@ export class Review {
 
     @OneToOne(() => Order, o => o.review) // specify inverse side as a second parameter
     order : Order
+    
+    @ManyToOne(() => User, u => u.reviews) 
+    freelance : User
+  
 }

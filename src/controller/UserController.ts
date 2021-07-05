@@ -16,6 +16,7 @@ import { UnBanUser } from '../entity/UnBanUser';
 import { WarnUser } from '../entity/WarnUser';
 import { getPagination } from '../util/pagination';
 
+
 class UserController implements Controller {
   public path = '/users';
   public router = Router();
@@ -238,8 +239,14 @@ class UserController implements Controller {
     } });    
     try {
       if (user) {
+        if(user.userType !== 2){
+          response.status(404).send({"msg" : "User Dont Found"})
+          return 
+        }
+   
+        
         const viewStat = await AuthTokenViewStat(auth , user)
-        response.send({...user , viewStat : viewStat.viewStat});
+        response.send({...user , viewStat : viewStat.viewStat });
       } else {
         next(new UserNotFoundException(id));
       }
