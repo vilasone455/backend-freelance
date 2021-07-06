@@ -56,3 +56,8 @@ export class JobPost {
 
     
 }
+
+export interface SimilarJob {
+    id : number
+    title : string
+}

@@ -49,7 +49,8 @@ class JobPostController implements Controller {
 
   private getAllJob = async (request: Request, response: Response, next: NextFunction) => {
     let category = request.query["category"]
-    
+    let subCategory = request.query["subcategory"]
+    let search = request.query["search"]
       let pag = getPagination(request)
       const chainQuery = this.jobPostRespotity
         .createQueryBuilder('j')
@@ -57,7 +58,13 @@ class JobPostController implements Controller {
         .innerJoinAndSelect("j.user" , "user")
         .where("user.userType=1 AND user.isBan=false")
   
-        if(category) chainQuery.andWhere("j.categoryId= :catId" , {catId : category})
+        
+        if(search) chainQuery.andWhere("j.title like :name " , {name : '%' + search.toString() + '%'})
+        if(subCategory){
+          chainQuery.andWhere("j.subCategoryId= :catId" , {catId : subCategory})
+        }else if(category){
+          chainQuery.andWhere("j.categoryId= :catId" , {catId : category})
+        }
   
         const [data , count] = await chainQuery
         .skip(pag.skip)
@@ -108,7 +115,7 @@ class JobPostController implements Controller {
     const id = request.params.id;
     const findId = Number(id)
     
-    const jobQuery = await this.jobPostRespotity.findOne({ where: { id: findId }, relations: ["user" , "proposals" , "proposals.user"] })
+    const jobQuery = await this.jobPostRespotity.findOne({ where: { id: findId }, relations: ["user" , "category" , "proposals" , "proposals.user"] })
     try {
       if (jobQuery) {
 
@@ -121,7 +128,11 @@ class JobPostController implements Controller {
           }else jobQuery.proposals = []
   
         }
-        response.send({ ...jobQuery, viewStat });
+        const similarJobs = await this.jobPostRespotity.find({where : {
+          category : jobQuery.category
+        } , take : 5})
+        
+        response.send({ ...jobQuery, similarJobs , viewStat });
       } else {
         response.status(404).send("Job not found")
       }

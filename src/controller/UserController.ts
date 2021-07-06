@@ -197,6 +197,8 @@ class UserController implements Controller {
 
   private getAllFreelance = async (request: Request, response: Response, next: NextFunction) => {
     let category = request.query["category"]
+    let subCategory = request.query["subcategory"]
+    let search = request.query["search"]
     let pag = getPagination(request)
     const chainQuery = this.userRespotity
       .createQueryBuilder('u')
@@ -205,7 +207,12 @@ class UserController implements Controller {
       .innerJoinAndSelect("profile.address" , "address")
       .where("u.userType=2 AND u.isBan=false")
 
-      if(category) chainQuery.andWhere("profile.categoryId= :catId" , {catId : category})
+      if(search) chainQuery.andWhere("profile.firstName like :name " , {name : '%' + search.toString() + '%'})
+      if(subCategory){
+        chainQuery.andWhere("j.subCategoryId= :catId" , {catId : subCategory})
+      }else if(category){
+        chainQuery.andWhere("j.categoryId= :catId" , {catId : category})
+      }
 
       const [data , count] = await chainQuery
       .skip(pag.skip)
@@ -217,7 +224,7 @@ class UserController implements Controller {
 
 
   private getAllUser = async (request: Request, response: Response, next: NextFunction) => {
-
+    
     let pag = getPagination(request)
     const [data , count] = await this.userRespotity
       .createQueryBuilder('user')
@@ -244,7 +251,6 @@ class UserController implements Controller {
           return 
         }
    
-        
         const viewStat = await AuthTokenViewStat(auth , user)
         response.send({...user , viewStat : viewStat.viewStat });
       } else {
