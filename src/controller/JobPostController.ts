@@ -100,9 +100,11 @@ class JobPostController implements Controller {
 
   private getJobByUser = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     const id = request.user.id
+    const pag = getPagination(request)
     try {
-      const rs = await this.jobPostRespotity.find({where:{user:{id:id}} , relations : ["proposals"]})
-      response.send(rs)
+      const [val , count] = await this.jobPostRespotity.findAndCount({where:{user:{id:id}} , relations : ["proposals"] 
+      , take : pag.take , skip : pag.skip})
+      response.send({count , val})
     } catch (error) {
       console.log(error)
       response.status(400).send("Bad Request")
