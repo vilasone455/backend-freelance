@@ -41,22 +41,27 @@ class ProposalController implements Controller {
     let proposal: EditProposal = request.body
     const user = request.user
     try {
-      if(proposal.freelance === proposal.user) return next(new BadRequestExpection())
+      if(proposal.freelance === proposal.user) {
+        console.log("Freelance is Equal User")
+        return response.status(400).send("Freelance is Equal User")
+      }
       if(proposal.jobPost){
         console.log("add proposal by jobpost")
 
         if(user.userType === UserType.Freelance){
           proposal.freelance = user
-        }else return next(new BadRequestExpection())
+        }else {
+          console.log("Only Freelance Can Send Job Proposal")
+          return response.status(400).send("Only Freelance Can Send Job Proposal")
+        }
 
         const jobRes = getRepository(JobPost)
-        const job = await jobRes.findOne({where : {
-          id : proposal.jobPost
-        } , relations : ["user"]})
+        const job = await jobRes.findOne({where : {id : proposal.jobPost } , relations : ["user"]})
         if(job){     
             proposal.status = ProposalStatus.FreelanceSend
             proposal.user = job.user
         }else{
+          console.log("Error Job Dont Found In Request")
           return response.status(400).send("Error Job Dont Found In Request")
         }
       }
@@ -73,6 +78,7 @@ class ProposalController implements Controller {
       const rs = await this.proposalRes.save(proposal as any)
       response.send(rs)
     } catch (error) {
+      console.log("catch error : ")
       console.log(error)
       next(new BadRequestExpection())
     }
