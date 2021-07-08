@@ -33,7 +33,7 @@ class ProposalController implements Controller {
     this.router.get(`${this.path}/accept/:id`, authMiddleware ,this.acceptOfferV2);
     this.router.get(`${this.path}/decline/:id`, authMiddleware ,this.declineOffer);
     this.router.get(`${this.path}s`, this.getAllProposal);
-    this.router.post(`${this.path}`, roleMiddleWare([UserType.User]) , this.addProposal);
+    this.router.post(`${this.path}`, roleMiddleWare([UserType.User , UserType.Freelance]) , this.addProposal);
     this.router.put(`${this.path}/:id`, authMiddleware , this.editProposalV2);
   }
 
@@ -50,15 +50,14 @@ class ProposalController implements Controller {
         }else return next(new BadRequestExpection())
 
         const jobRes = getRepository(JobPost)
-        const job = await jobRes.findOne({where:{"userId" : proposal.freelance}})
-        if(job){
-          if(job.id !== proposal.jobPost){
-            return next(new BadRequestExpection())
-          }else{
+        const job = await jobRes.findOne({where : {
+          id : proposal.jobPost
+        } , relations : ["user"]})
+        if(job){     
             proposal.status = ProposalStatus.FreelanceSend
-          }
+            proposal.user = job.user
         }else{
-          return next(new BadRequestExpection())
+          return response.status(400).send("Error Job Dont Found In Request")
         }
       }
 
@@ -74,6 +73,7 @@ class ProposalController implements Controller {
       const rs = await this.proposalRes.save(proposal as any)
       response.send(rs)
     } catch (error) {
+      console.log(error)
       next(new BadRequestExpection())
     }
   }
