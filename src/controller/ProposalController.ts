@@ -16,12 +16,13 @@ import authMiddleware from '../middleware/auth.middleware';
 import { EditProposal } from '../dto/EditProposal.dto';
 import { ProposalStatus } from '../interfaces/ProposalStatus';
 import { JobPost } from '../entity/JobPost';
+import { JobStatus } from '../interfaces/JobStatus';
 
 class ProposalController implements Controller {
   public path = '/proposal';
   public router = Router();
   private proposalRes = getRepository(Proposal);
-
+  private jobPostRes = getRepository(JobPost);
 
   constructor() {
     this.initializeRoutes();
@@ -117,7 +118,7 @@ class ProposalController implements Controller {
       const isUser = proposal.user.id === user.id
       const isFreelance = proposal.freelance.id === user.id
 
-      if(proposal.jobPost && isFreelance){
+      if(proposal.jobPost && isFreelance){ // if freelance aceept proposal in jobpost
         return next(new BadPermissionExpections())
       }
 
@@ -135,11 +136,17 @@ class ProposalController implements Controller {
 
         proposal.status = OfferStat.Accept
 
+        if(proposal.jobPost){
+          let job = proposal.jobPost
+          job.status = JobStatus.Close
+          await this.jobPostRes.save(job)
+        }
+
         await this.proposalRes.save(proposal)
         const order : CreateOrder = {orderStatus : 1, proposal}
         const orderRes = getRepository(Order)
-        await orderRes.save(order)
-        response.send(order)
+        const o = await orderRes.save(order)
+        response.send(o)
       }else{
         next(new BadPermissionExpections())
       }

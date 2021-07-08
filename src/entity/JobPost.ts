@@ -22,6 +22,9 @@ export class JobPost {
     createdDate: Date;
 
     @Column({default : 1})
+    status : number
+
+    @Column({default : 1})
     jobType: number;
 
     @Column({default : "1"})
