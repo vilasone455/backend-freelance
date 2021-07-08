@@ -56,9 +56,9 @@ class JobPostController implements Controller {
         .createQueryBuilder('j')
         .orderBy('j.id', "DESC")
         .innerJoinAndSelect("j.user" , "user")
-        .where("user.userType=1 AND user.isBan=false")
+        .where("user.userType=1 AND user.isBan=false AND j.status=1")
+
   
-        
         if(search) chainQuery.andWhere("j.title like :name " , {name : '%' + search.toString() + '%'})
         if(subCategory){
           chainQuery.andWhere("j.subCategoryId= :catId" , {catId : subCategory})
