@@ -17,6 +17,7 @@ import { EditProposal } from '../dto/EditProposal.dto';
 import { ProposalStatus } from '../interfaces/ProposalStatus';
 import { JobPost } from '../entity/JobPost';
 import { JobStatus } from '../interfaces/JobStatus';
+import { getPagination } from '../util/pagination';
 
 class ProposalController implements Controller {
   public path = '/proposal';
@@ -179,12 +180,13 @@ class ProposalController implements Controller {
 
   private getProposalByUser = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     const id = request.user.id
-    const rs = await this.proposalRes.find({where : [
+    const pag = getPagination(request , 15)
+    const [val , count] = await this.proposalRes.findAndCount({where : [
       {"user" : {"id" : id} },
       {"freelance" : {"id" : id} }
     ] , 
-    relations : ["user" , "freelance" , "jobPost"] })
-    response.send(rs)
+    relations : ["user" , "freelance" , "jobPost"] , take : pag.take , skip : pag.skip })
+    response.send({count , val})
   }
 
   private getProposalById = async (request: RequestWithUser, response: Response, next: NextFunction) => {

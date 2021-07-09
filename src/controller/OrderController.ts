@@ -7,8 +7,7 @@ import { OrderStat } from '../interfaces/OrderStat';
 import authMiddleware from '../middleware/auth.middleware';
 import { User } from '../entity/User';
 import BadPermissionExpections from '../exceptions/BadPermissionExpection';
-
-
+import { getPagination } from '../util/pagination';
 
 class OrderController implements Controller {
   public path = '/order';
@@ -33,16 +32,19 @@ class OrderController implements Controller {
 
   private getOrderByUser = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     const id = request.user.id
+    const pag = getPagination(request , 15)
     console.log("user id : " + id)
-    const rs = await this.orderRespotity.createQueryBuilder("o")
+    const [val , count] = await this.orderRespotity.createQueryBuilder("o")
       .innerJoinAndSelect("o.proposal", "proposal")
       .leftJoinAndSelect("proposal.jobPost", "jobPost")
       .innerJoinAndSelect("proposal.freelance", "freelance")
       .leftJoinAndSelect("o.payments", "payments")
       .where("proposal.userId = :id or proposal.freelanceId=:id", { id })
-      .getMany()
+      .take(pag.take)
+      .skip(pag.skip)
+      .getManyAndCount()
 
-    response.send(rs)
+    response.send({val , count})
   }
 
   private getOrderById = async (request: RequestWithUser, response: Response, next: NextFunction) => {

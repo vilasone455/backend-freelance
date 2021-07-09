@@ -7,8 +7,8 @@ interface Pagination{
     page : number
 }
 
-export const getPagination = (request : Request) => {
-    const take = Number(request.query["take"]) || 5
+export const getPagination = (request : Request , defaultTake = 5) => {
+    const take = Number(request.query["take"]) || defaultTake
     let page = Number(request.query["page"]) || 0
     if(page > 0) page -= 1
     let skip = page * take
