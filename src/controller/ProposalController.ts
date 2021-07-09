@@ -183,7 +183,7 @@ class ProposalController implements Controller {
       {"user" : {"id" : id} },
       {"freelance" : {"id" : id} }
     ] , 
-    relations : ["user" , "freelance"] })
+    relations : ["user" , "freelance" , "jobPost"] })
     response.send(rs)
   }
 
