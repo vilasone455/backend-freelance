@@ -37,6 +37,7 @@ class OrderController implements Controller {
     const [val , count] = await this.orderRespotity.createQueryBuilder("o")
       .innerJoinAndSelect("o.proposal", "proposal")
       .leftJoinAndSelect("proposal.jobPost", "jobPost")
+      .innerJoinAndSelect("proposal.user", "user")
       .innerJoinAndSelect("proposal.freelance", "freelance")
       .leftJoinAndSelect("o.payments", "payments")
       .where("proposal.userId = :id or proposal.freelanceId=:id", { id })
