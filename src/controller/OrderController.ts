@@ -9,6 +9,8 @@ import { User } from '../entity/User';
 import BadPermissionExpections from '../exceptions/BadPermissionExpection';
 import { getPagination } from '../util/pagination';
 
+import { UserType } from '../interfaces/UserType';
+
 class OrderController implements Controller {
   public path = '/order';
   public router = Router();
@@ -22,6 +24,7 @@ class OrderController implements Controller {
   private initializeRoutes() {
     this.router.get(`${this.path}s`, this.getAllOrder);
     this.router.get(`${this.path}/user/all`, authMiddleware, this.getFreelanceByOrderV1);
+    this.router.get(`${this.path}/userinfo/:id`, this.getFreelanceByOrderV2);
     //this.router.get(`${this.path}/user/:id` , this.getFreelanceByOrder);
     this.router.get(`${this.path}`, authMiddleware, this.getOrderByUser);
     this.router.get(`${this.path}/info/:id`, authMiddleware, this.getOrderById);
@@ -52,13 +55,20 @@ class OrderController implements Controller {
     const id = Number(request.params.id)
     const userId = request.user.id
 
-    const rs = await this.orderRespotity.createQueryBuilder("o")
-      .innerJoinAndSelect("o.proposal", "proposal")
+    const chainQuery = this.orderRespotity.createQueryBuilder("o")
       .leftJoinAndSelect("o.payments", "payments")
       .leftJoinAndSelect("o.workFiles", "workFiles")
       .leftJoinAndSelect("workFiles.owner", "owner")
       .leftJoinAndSelect("o.review", "r")
-      .where("o.id = :id AND (proposal.userId = :uId OR proposal.freelanceId = :uId)", { id: id, uId: userId })
+      .innerJoinAndSelect("o.proposal", "proposal")
+    
+      if(request.user.userType === UserType.Freelance){
+        chainQuery.innerJoinAndSelect("proposal.user" , "user")
+      }else if(request.user.userType === UserType.User){
+        chainQuery.innerJoinAndSelect("proposal.freelance" , "freelance")
+      }
+
+      const rs = await  chainQuery.where("o.id = :id AND (proposal.userId = :uId OR proposal.freelanceId = :uId)", { id: id, uId: userId })
       .getOne()
 
     if(rs){
@@ -91,6 +101,29 @@ class OrderController implements Controller {
       }
     })
     response.send(users)
+  }
+
+  private getFreelanceByOrderV2 = async (request: RequestWithUser, response: Response, next: NextFunction) => {
+    const id = request.params.id
+    console.log("user id : " + id)
+    //const r = await this.orderRespotity.query("select * from order")
+    const rs = await this.orderRespotity.createQueryBuilder("o")
+      .innerJoin("o.proposal" , "proposal")
+
+      .select([
+        'sum(o.id)',
+        'o.id',
+        "proposal.id",
+        'proposal.title',
+        "proposal.freelanceId",
+      ])
+      .groupBy("o.id")
+      .groupBy("proposal.id")
+      .groupBy("proposal.freelanceId")
+
+      .getRawMany();
+    
+    response.send(rs)
   }
 
 
