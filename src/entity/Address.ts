@@ -6,6 +6,9 @@ export class Address {
     @PrimaryGeneratedColumn()
     id: number;
 
+    @Column({default : ""})
+    location: string;
+
     @Column()
     village: string;
 

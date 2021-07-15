@@ -59,6 +59,7 @@ export class ProfileDto{
 }
 
 export class AddressDto{
+    location: string;
     village: string;
     city: string;
     capital: string;
