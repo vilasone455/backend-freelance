@@ -125,7 +125,7 @@ class JobPostController implements Controller {
         const {user,viewStat} = await AuthTokenViewStat(auth, jobQuery.user)
         if(viewStat === ViewStat.ViewOther || viewStat === ViewStat.ViewUser) jobQuery.proposals = []
         if(viewStat === ViewStat.ViewFreelance){
-          const proposal = jobQuery.proposals.find(p=>p.user.id === user.id)
+          const proposal = jobQuery.proposals.find(p=>p.freelance.id === user.id)
           if(proposal !== undefined){
             jobQuery.proposals = [proposal]
           }else jobQuery.proposals = []

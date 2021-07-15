@@ -37,6 +37,12 @@ export class Profile {
     @Column({default : 1})
     gender: number;
 
+    @Column({default : 10000})
+    startPrice: number;
+
+    @Column({default : 0})
+    endPrice: number;
+
     @ManyToOne(() => Category)
     @JoinColumn()
     category : Category;
