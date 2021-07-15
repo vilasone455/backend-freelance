@@ -37,6 +37,9 @@ export class Profile {
     @Column({default : 1})
     gender: number;
 
+    @Column({default : 20})
+    age: number;
+
     @Column({default : 10000})
     startPrice: number;
 

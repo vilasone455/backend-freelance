@@ -36,6 +36,9 @@ export function UserDtoToProfile(u:CreateFreelanceDto) : Profile{
     p.jobType = u.profile.jobType
     p.gender = u.profile.gender
     p.skills = u.profile.skills
+    p.startPrice = 0
+    p.endPrice = 0
+    p.age = u.profile.age
     //p.address = this.profile.address
     //p.address = this.profile.address
     return p 
@@ -52,6 +55,7 @@ export class ProfileDto{
     @MinLength(8)
     public aboutMe: string;
     public gender: number;
+    public age : number
     public category : number
     public subCategory : number;
     public skills : string
