@@ -15,6 +15,8 @@ import { UserType } from '../interfaces/UserType';
 import { ViewStat } from '../interfaces/ViewStat';
 import authMiddleware from '../middleware/auth.middleware';
 import { getPagination } from '../util/pagination';
+import { JobStatus } from '../interfaces/JobStatus';
+
 
 class JobPostController implements Controller {
   public path = '/jobpost';
@@ -30,6 +32,7 @@ class JobPostController implements Controller {
     this.router.get(`${this.path}/:id`, this.getJobById);
     this.router.get(`${this.path}/user/all`, authMiddleware , this.getJobByUser);
     this.router.get(`${this.path}`, this.getAllJob);
+    this.router.get(`${this.path}/close/:id`, authMiddleware , this.closeJob);
     this.router.post(`${this.path}`, roleMiddleWare([UserType.User]), this.postJob);
     this.router.put(`${this.path}/:id`, permission(JobPost), this.updatePost);
     this.router.delete(`${this.path}/:id`, permission(JobPost), this.deletePost);
@@ -144,6 +147,23 @@ class JobPostController implements Controller {
     }
 
   }
+
+  private closeJob = async (request: RequestWithUser, response: Response, next: NextFunction) => {
+    const id = request.user.id
+    const jobId = request.params.id
+    const vaildUserType = [UserType.Admin , UserType.MainAdmin]
+    try {
+      const job = await this.jobPostRespotity.findOne(jobId)
+      if((job.user !== request.user || vaildUserType.includes(request.user.userType)) || job.status === JobStatus.Close) return response.status(400).send("You cant close this job")
+      job.status = JobStatus.Close
+      const rs = await this.jobPostRespotity.save(job)
+      response.send(rs)
+    } catch (error) {
+      console.log(error)
+      response.status(400).send("Bad Request")
+    }
+  }
+
 
 
 }

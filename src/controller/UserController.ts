@@ -15,6 +15,8 @@ import BadPermissionExpections from '../exceptions/BadPermissionExpection';
 import { UnBanUser } from '../entity/UnBanUser';
 import { WarnUser } from '../entity/WarnUser';
 import { getPagination } from '../util/pagination';
+import roleMiddleWare from '../middleware/role.middleware';
+import { UserType } from '../interfaces/UserType';
 
 
 class UserController implements Controller {
@@ -28,15 +30,18 @@ class UserController implements Controller {
   }
 
   private initializeRoutes() {
+ 
     this.router.get(`/usertoken`, this.getUserByToken);
     this.router.get(`${this.path}/:id`, this.getUserById);
     this.router.get(`${this.path}`, this.getAllUser);
     this.router.get(`/freelances`, this.getAllFreelance);
     this.router.get(`${this.path}all`, this.allUser);
+    this.router.get(`${this.path}/addadmin`, roleMiddleWare([UserType.MainAdmin]) ,this.addAdmin);
+    this.router.get(`${this.path}/getadmin`, roleMiddleWare([UserType.MainAdmin]) ,this.getAdmins);
     this.router.get(`${this.path}/jobs`, this.getAllJob);
-    this.router.post(`${this.path}/ban`, authMiddleware , this.banUser);
-    this.router.post(`${this.path}/unban`, authMiddleware , this.unBanUser);
-    this.router.post(`${this.path}/warn`, authMiddleware , this.warnUser);
+    this.router.post(`${this.path}/ban`, roleMiddleWare([UserType.Admin , UserType.MainAdmin]) , this.banUser);
+    this.router.post(`${this.path}/unban`, roleMiddleWare([UserType.Admin , UserType.MainAdmin]) , this.unBanUser);
+    this.router.post(`${this.path}/warn`, roleMiddleWare([UserType.Admin , UserType.MainAdmin]) , this.warnUser);
     this.router.get(`${this.path}/ban/all` , authMiddleware  ,this.getBanUser);
     this.router.get(`${this.path}/unban/all`, authMiddleware , this.getUnBanUser);
     this.router.get(`${this.path}/warn/all`, authMiddleware , this.getWarnUser);
@@ -44,8 +49,19 @@ class UserController implements Controller {
   }
 
   private allUser = async (request: Request, response: Response, next: NextFunction) => {
-    
     const users = await this.userRespotity.find();
+    response.send(users)
+  }
+
+  private addAdmin = async (request: Request, response: Response, next: NextFunction) => {
+    let u : User = request.body
+    u.userType = 3
+    const users = await this.userRespotity.save(u)
+    response.send(users)
+  }
+
+  private getAdmins = async (request: Request, response: Response, next: NextFunction) => {
+    const users = await this.userRespotity.find({where : {userType : UserType.Admin}})
     response.send(users)
   }
 
@@ -70,8 +86,7 @@ class UserController implements Controller {
   private banUser = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     const take = Number(request.query["take"]) || 5
     const user = request.user
-    if(user.userType !== 3) return next(new BadPermissionExpections())
-    
+
     const banRes = getRepository(BanUser)
     const ban : BanUser = request.body
     const banuser = await this.userRespotity.findOne(ban.user)
@@ -79,7 +94,7 @@ class UserController implements Controller {
 
       console.log(banuser)
       if(banuser){
-        if(banuser.userType === 3) return next(new BadPermissionExpections())
+        if(banuser.userType === UserType.Admin && user.userType === UserType.Admin) return next(new BadPermissionExpections())
         banuser.isBan = true
         ban.admin = user
         await banRes.save(ban)
@@ -100,13 +115,12 @@ class UserController implements Controller {
   private unBanUser = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     const take = Number(request.query["take"]) || 5
     const user = request.user
-    
-    if(user.userType !== 3) return next(new BadPermissionExpections())
+
     const unbanRes = getRepository(UnBanUser)
     const unBanData : UnBanUser = request.body
     const banUser = await this.userRespotity.findOne(unBanData.user)
     if(banUser){
-      if(banUser.userType === 3) return next(new BadPermissionExpections())
+      if(banUser.userType === UserType.Admin && user.userType === UserType.Admin) return next(new BadPermissionExpections())
       if(banUser.isBan){
         banUser.isBan = false
         unBanData.admin = user
@@ -129,14 +143,14 @@ class UserController implements Controller {
   private warnUser = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     const take = Number(request.query["take"]) || 5
     const user = request.user
-    if(user.userType !== 3) return next(new BadPermissionExpections())
+
     const warnRes = getRepository(WarnUser)
     const warn : WarnUser = request.body
     const warnuser = await this.userRespotity.findOne(warn.user)
     try {
 
       if(warnuser){
-        if(warnuser.userType === 3 || warnuser.isBan) return next(new BadPermissionExpections())
+        if((warnuser.userType === UserType.Admin && user.userType === UserType.Admin ) || warnuser.isBan) return next(new BadPermissionExpections())
         warn.admin = user
         await warnRes.save(warn)
         const [data,count] = await warnRes.findAndCount({relations:["user" , "admin"] , order:{id:"DESC"} , skip : 0 , take : take  })
