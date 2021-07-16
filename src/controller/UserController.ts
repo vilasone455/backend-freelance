@@ -36,7 +36,7 @@ class UserController implements Controller {
     this.router.get(`${this.path}`, this.getAllUser);
     this.router.get(`/freelances`, this.getAllFreelance);
     this.router.get(`${this.path}all`, this.allUser);
-    this.router.get(`${this.path}/addadmin`, roleMiddleWare([UserType.MainAdmin]) ,this.addAdmin);
+    this.router.post(`${this.path}/addadmin`, roleMiddleWare([UserType.MainAdmin]) ,this.addAdmin);
     this.router.get(`${this.path}/getadmin`, roleMiddleWare([UserType.MainAdmin]) ,this.getAdmins);
     this.router.get(`${this.path}/jobs`, this.getAllJob);
     this.router.post(`${this.path}/ban`, roleMiddleWare([UserType.Admin , UserType.MainAdmin]) , this.banUser);
