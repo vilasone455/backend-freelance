@@ -84,3 +84,8 @@ export class User {
     adminUnBan : WarnUser[]
 
 }
+
+export interface UserWithReview extends User{
+    reviewCount : number
+    averageReview : number
+}

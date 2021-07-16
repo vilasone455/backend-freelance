@@ -27,6 +27,7 @@ class ReviewController implements Controller {
 
   private initializeRoutes() {
     this.router.get(`${this.path}`, this.allReviews);
+    this.router.get(`/reviewajust`, this.ajustReview);
     this.router.get(`${this.path}/user/:freelanceid`, this.getReviewByUser);
     this.router.post(`${this.path}/:orderid`, authMiddleware, this.addReview);
 
@@ -37,6 +38,24 @@ class ReviewController implements Controller {
     const rs = await this.reviewRespoity.find({ relations: ["freelance" , "order" , "order.proposal" , "order.proposal.freelance"] })
     response.send(rs)
   }
+
+  private ajustReview = async (request: Request, response: Response, next: NextFunction) => {
+    const rs = await this.reviewRespoity.find({ relations: ["freelance" , "order" , "order.proposal" , "order.proposal.freelance"] })
+    
+    let process : Promise<Review>[] = []
+    rs.forEach(r=>{
+      if(!r.freelance){
+        console.log("not null ")
+        const f = r.order.proposal.freelance
+        r.freelance =f
+        let add =  this.reviewRespoity.save(r)
+        process.push(add)
+      }
+    })
+    const r = await Promise.all(process)
+    response.send(r)
+  }
+
 
   private setEmplyFreelance = async (request: Request, response: Response, next: NextFunction) => {
     const rs = await this.reviewRespoity.find({ relations: ["freelance" , "order" , "order.proposal" , "order.proposal.freelance"] })
@@ -80,7 +99,7 @@ class ReviewController implements Controller {
   
     console.log("get review " + id)
 
-    const reviewList = await this.reviewRespoity.createQueryBuilder("r")
+    const [val , count] = await this.reviewRespoity.createQueryBuilder("r")
     .leftJoinAndSelect("r.order" , "order")
     .leftJoinAndSelect("order.proposal" , "proposal")
     .leftJoinAndSelect("proposal.jobPost", "jobPost")
@@ -88,11 +107,11 @@ class ReviewController implements Controller {
     .where("proposal.freelanceId = :id" , {id:id})
     .skip(pag.skip)
     .take(pag.take)
-    .getMany()
+    .getManyAndCount()
 
       console.log("get success")
     const reviewRs: ReviewResponse[] = []
-    reviewList.forEach(r => {
+    val.forEach(r => {
       const order = r.order
       let title = (order.proposal.jobPost) ? order.proposal.jobPost.title : order.proposal.title
       let add: ReviewResponse = {
@@ -105,7 +124,7 @@ class ReviewController implements Controller {
       reviewRs.push(add)
     });
     
-    response.send(reviewRs)
+    response.send({val : reviewRs , count})
   }
 
 

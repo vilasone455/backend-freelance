@@ -2,7 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 
 import Controller from '../interfaces/controller.interface';
 import * as jwt from 'jsonwebtoken';
-import { User } from '../entity/User';
+import { User, UserWithReview } from '../entity/User';
 import UserNotFoundException from '../exceptions/UserNotFoundException';
 import { getRepository } from 'typeorm';
 import DataStoredInToken from '../interfaces/dataStoredInToken';
@@ -219,6 +219,7 @@ class UserController implements Controller {
       .orderBy('u.id', "DESC")
       .innerJoinAndSelect("u.profile" , "profile")
       .innerJoinAndSelect("profile.address" , "address")
+      .leftJoinAndSelect("u.reviews" , "reviews")
       .where("u.userType=2 AND u.isBan=false")
 
       if(search) chainQuery.andWhere("profile.firstName like :name " , {name : '%' + search.toString() + '%'})
@@ -233,7 +234,24 @@ class UserController implements Controller {
       .take(pag.take)
       .getManyAndCount()
 
-    response.send({count : count,val : data})
+      const userWithReviews : UserWithReview[] = []
+
+      data.forEach(d => {
+        let reviewCount = d.reviews.length
+        let score = d.reviews.reduce((a, b) => {
+          let average =  (b.productScore + b.chatScore + b.serviceScore + b.priceScore ) / 4
+          //console.log(`cal of ${d.userEmail} : ${b.productScore} + ${b.chatScore} + ${b.serviceScore} + ${b.priceScore} / 4 = ${average}`)
+          return average <= 0 ? 0 : average
+        } , 0.0)
+        let averageTotal = score / reviewCount
+        averageTotal = averageTotal <= 0 ? 0 : averageTotal
+        d.reviews = []
+        userWithReviews.push({...d , reviewCount , averageReview : averageTotal})
+        
+      });
+
+
+    response.send({count : count,val : userWithReviews})
   }
 
 
