@@ -75,12 +75,13 @@ class ReviewController implements Controller {
     const user = request.user
     const orderRes = getRepository(Order)
 
-    const order = await orderRes.findOne({ relations: ["proposal", "proposal.user", "review"], where: { id: orderid, orderStatus: OrderStat.Finish } })
+    const order = await orderRes.findOne({ relations: ["proposal", "proposal.user" , "proposal.freelance", "review"], where: { id: orderid, orderStatus: OrderStat.Finish } })
     if (order) {
       console.log(order.review)
       if (order.review !== undefined) return response.status(400).send("You already review")
       if (order.proposal.user.id === user.id) {
         review.order = order
+        review.freelance = order.proposal.freelance
         const rs = await this.reviewRespoity.save(review)
         response.send(rs)
       } else {
