@@ -29,6 +29,7 @@ class JobPostController implements Controller {
   }
 
   private initializeRoutes() {
+    this.router.get(`/ajustjob`, this.ajustJob);
     this.router.get(`${this.path}/:id`, this.getJobById);
     this.router.get(`${this.path}/user/all`, authMiddleware , this.getJobByUser);
     this.router.get(`${this.path}`, this.getAllJob);
@@ -37,6 +38,47 @@ class JobPostController implements Controller {
     this.router.put(`${this.path}/:id`, permission(JobPost), this.updatePost);
     this.router.delete(`${this.path}/:id`, permission(JobPost), this.deletePost);
   }
+
+  private randomSkill = (n : number) => {
+    let skillsets : string[] = [
+      "Php",
+      "Javascript",
+      "Html",
+      "CSS",
+      "Nodejs",
+      "Python",
+      "Flutter",
+      "MongoDb",
+      "Xamarin",
+      "Java",
+      "C++"
+    ]
+
+    let rs : string[] = []
+    for (let i = 0; i < n; i++) {
+      let indexof = Math.floor(Math.random()*skillsets.length)
+      rs.push(skillsets[indexof])
+      skillsets.splice(indexof , 1)
+    }
+    return rs.join()
+  }
+
+  private ajustJob = async (request: Request, response: Response, next: NextFunction) => {
+
+    const jobs = await this.jobPostRespotity.find()
+    const process : Promise<JobPost>[]  = []
+    jobs.forEach(u => {
+      if(u.description === "" || u.description === "cccc" || u.skillRequires.length < 10){
+        u.skillRequires = this.randomSkill(5)
+        u.description = "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries"
+        process.push(this.jobPostRespotity.save(u))
+      }
+      //this.userRespotity.save()
+    });
+    const rs = await Promise.all(process)
+    response.send(rs)
+  }
+
 
   private postJob = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     const post: JobPost = request.body

@@ -36,7 +36,8 @@ class ProposalController implements Controller {
     this.router.get(`${this.path}/decline/:id`, authMiddleware ,this.declineOffer);
     this.router.get(`${this.path}s`, this.getAllProposal);
     this.router.post(`${this.path}`, roleMiddleWare([UserType.User , UserType.Freelance]) , this.addProposal);
-    this.router.put(`${this.path}/:id`, authMiddleware , this.editProposalV2);
+    this.router.put(`${this.path}/:id`, authMiddleware , this.editProposal);
+   // this.router.put(`${this.path}/:id`, authMiddleware , this.editProposalV2);
   }
 
   private addProposal = async (request: RequestWithUser, response: Response, next: NextFunction) => {
@@ -85,6 +86,33 @@ class ProposalController implements Controller {
       next(new BadRequestExpection())
     }
   }
+
+  private editProposal = async (request: RequestWithUser, response: Response, next: NextFunction) => {
+    const proposal: EditProposal = request.body
+    const user = request.user
+    try {
+      const isUser = proposal.user = user.id
+      const isFreelance = proposal.freelance === user.id
+
+      if(proposal.jobPost){
+        if(isFreelance || proposal.status === ProposalStatus.FreelanceSend) return next(new BadPermissionExpections())
+      }
+
+      //isUser && ProposalStatus.UserSend
+      //isFreelance && ProposalStatus.FreelanceSend
+
+      if((isUser || proposal.status === ProposalStatus.UserSend) || (isFreelance && proposal.status === ProposalStatus.FreelanceSend)){
+ 
+        const rs = await this.proposalRes.save(proposal as any)
+        response.send(rs)
+      }else{ next(new BadPermissionExpections())}
+      
+    } catch (error) {
+      next(new BadRequestExpection())
+    }
+   
+  }
+
 
 
   private editProposalV2 = async (request: RequestWithUser, response: Response, next: NextFunction) => {
