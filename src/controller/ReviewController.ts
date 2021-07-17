@@ -78,7 +78,7 @@ class ReviewController implements Controller {
     const order = await orderRes.findOne({ relations: ["proposal", "proposal.user" , "proposal.freelance", "review"], where: { id: orderid, orderStatus: OrderStat.Finish } })
     if (order) {
       console.log(order.review)
-      if (order.review !== undefined) return response.status(400).send("You already review")
+      if (order.review) return response.status(400).send("You already review")
       if (order.proposal.user.id === user.id) {
         review.order = order
         review.freelance = order.proposal.freelance
