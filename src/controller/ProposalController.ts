@@ -186,7 +186,6 @@ class ProposalController implements Controller {
   }
 
  
-
   private declineOffer = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     const user = request.user
     const proposal = await this.proposalRes.findOne(request.params.id)
