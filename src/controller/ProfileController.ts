@@ -139,7 +139,7 @@ class ProfileController implements Controller {
       const rs = await this.profileRespotity.save(profile)
 
       user.profile = rs
-      await this.userRespotity.save(user)
+      return await this.userRespotity.save(user)
 
     } catch (error) {
       throw new Error(error);
