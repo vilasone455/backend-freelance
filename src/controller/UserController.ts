@@ -18,8 +18,8 @@ import { getPagination } from '../util/pagination';
 import roleMiddleWare from '../middleware/role.middleware';
 import { UserType } from '../interfaces/UserType';
 import { Profile } from '../entity/Profile';
-
-
+import * as Formidable from 'formidable';
+import { v2 } from 'cloudinary'
 class UserController implements Controller {
   public path = '/users';
   public router = Router();
@@ -37,9 +37,11 @@ class UserController implements Controller {
     this.router.get(`${this.path}`, this.getAllUser);
     this.router.get(`/freelances`, this.getAllFreelance);
     this.router.get(`${this.path}all`, this.allUser);
+    this.router.put(`${this.path}image/:id`, this.updateImage);
     this.router.post(`${this.path}/addadmin`, roleMiddleWare([UserType.MainAdmin]) ,this.addAdmin);
     this.router.get(`${this.path}/getadmin`, roleMiddleWare([UserType.MainAdmin]) ,this.getAdmins);
     this.router.get(`${this.path}/jobs`, this.getAllJob);
+    
     this.router.post(`${this.path}/ban`, roleMiddleWare([UserType.Admin , UserType.MainAdmin]) , this.banUser);
     this.router.post(`${this.path}/unban`, roleMiddleWare([UserType.Admin , UserType.MainAdmin]) , this.unBanUser);
     this.router.post(`${this.path}/warn`, roleMiddleWare([UserType.Admin , UserType.MainAdmin]) , this.warnUser);
@@ -48,6 +50,32 @@ class UserController implements Controller {
     this.router.get(`${this.path}/warn/all`, authMiddleware , this.getWarnUser);
 
   }
+
+  private updateImage = async (request: RequestWithUser, response: Response, next: NextFunction) => {
+    const user = request.user
+    const id = Number(request.params.id)
+    if(user.id !== id) return next(new BadPermissionExpections())
+
+    const form = new Formidable();
+    form.parse(request, (err, fields, files) => {
+        
+        v2.uploader.upload(files.file.path,
+            { resource_type: "auto" })
+            .then((result) => {
+                response.status(200).send({
+                    message: "success",
+                    result,
+                });
+            }).catch((error) => {
+                response.status(500).send({
+                    message: "failure",
+                    error,
+                });
+            });
+    });
+
+  }
+
 
   private allUser = async (request: Request, response: Response, next: NextFunction) => {
     const users = await this.userRespotity.find();

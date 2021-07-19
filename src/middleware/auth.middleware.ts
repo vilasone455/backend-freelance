@@ -1,4 +1,4 @@
-import { NextFunction, Response } from 'express';
+import { NextFunction, Response , Request} from 'express';
 import * as jwt from 'jsonwebtoken';
 import AuthenticationTokenMissingException from '../exceptions/AuthenticationTokenMissingException';
 import WrongAuthenticationTokenException from '../exceptions/WrongAuthenticationTokenException';
@@ -7,7 +7,34 @@ import RequestWithUser from '../interfaces/requestWithUser.interface';
 import {User} from '../entity/User';
 import { getRepository } from 'typeorm';
 import BadPermissionExpections from '../exceptions/BadPermissionExpection';
+import HttpException from 'src/exceptions/HttpException';
 
+
+export interface DataWithError<T> {
+  data : T
+  error : HttpException
+}
+
+export const jwtToUser = async (rq : Request) : Promise<DataWithError<User>> => {
+  const auth = rq.headers["authorization"]
+  if (auth) {
+    const secret = process.env.SECRET_KEY;
+    const userRepository = getRepository(User)
+    try {
+
+      const verificationResponse = jwt.verify(auth, secret) as DataStoredInToken;
+      const userTokenId = verificationResponse._id;
+      const user = await userRepository.findOne({where : {id : userTokenId } , relations : ["profile"]} );
+      return {data : user , error : null}
+        
+      } catch (error) {
+        console.log(error)
+        return {error : new WrongAuthenticationTokenException() , data : null}
+      }
+    }else {
+      return {error : new WrongAuthenticationTokenException() , data : null}
+    }
+}
 
 async function authMiddleware(request: RequestWithUser, response: Response, next: NextFunction ) {
 

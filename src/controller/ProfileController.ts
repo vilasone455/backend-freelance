@@ -4,7 +4,7 @@ import Controller from '../interfaces/controller.interface';
 
 import { Profile } from '../entity/Profile';
 import UserNotFoundException from '../exceptions/UserNotFoundException';
-import { getRepository } from 'typeorm';
+import { EntityTarget, getRepository } from 'typeorm';
 import { User } from '../entity/User';
 import { Address } from '../entity/Address';
 //import { GeneralProfile } from '../entity/GeneralProfile';
@@ -13,12 +13,14 @@ import { Education } from '../entity/Education';
 import { Portfilio } from '../entity/Portfilio';
 
 import RequestWithUser from '../interfaces/requestWithUser.interface';
-import authMiddleware from '../middleware/auth.middleware';
+import authMiddleware, { DataWithError, jwtToUser } from '../middleware/auth.middleware';
 import permissionMiddleWare from '../middleware/permisson1To1.middleware';
 import BadPermissionExpections from '../exceptions/BadPermissionExpection';
 
 import RequestWithEntity from '../interfaces/requestWithEntity.interface';
 import { Language } from '../entity/Language';
+
+import BadPermissionExpection from '../exceptions/BadPermissionExpection';
 
 enum Gender {
   Male = 1,
@@ -48,7 +50,55 @@ class ProfileController implements Controller {
     this.router.get(`${this.path}`, this.getAllProject);
     this.router.put(`${this.path}/:id`, permissionMiddleWare(User, "profile"), this.updateProfileV2);
     this.router.post(`${this.path}`, authMiddleware, this.newProfile);
+    this.router.post(`/profileadd/portfilio`, authMiddleware, this.addPortfilio);
+    this.router.post(`/profileadd/education`, authMiddleware, this.addEducation);
+    this.router.post(`/profileadd/work`, authMiddleware, this.addWork);
+  }
 
+  private async addProfileItem<T>(entity : EntityTarget<T> , request: Request) : Promise<DataWithError<T>> {
+    const user = await jwtToUser(request)
+    if(!user.error) return {data : null , error : user.error}
+    const e : T = request.body
+    if(e["profile"] !== user.data.profile) return {data : null , error :  new BadPermissionExpection()}
+    const res = getRepository(entity)
+    try {
+      const rs  = await res.save(e)
+      return {data : rs , error : null}
+    } catch (error) {
+      throw new Error(error)
+    }
+  }
+
+  private addPortfilio = async (request: Request, response: Response, next: NextFunction) => {
+    try {
+      const rs = await this.addProfileItem(Portfilio , request)
+      if(rs.error) return next(rs.error)
+      response.send(rs.data)
+    } catch (error) {
+      response.status(400).send("Bad Request")
+    }
+  }
+
+  
+  private addWork = async (request: RequestWithUser, response: Response, next: NextFunction) => {
+    try {
+      const rs = await this.addProfileItem(WorkEx , request)
+      if(rs.error) return next(rs.error)
+      response.send(rs.data)
+    } catch (error) {
+      response.status(400).send("Bad Request")
+    }
+  }
+
+  
+  private addEducation = async (request: RequestWithUser, response: Response, next: NextFunction) => {
+    try {
+      const rs = await this.addProfileItem(Education , request)
+      if(rs.error) return next(rs.error)
+      response.send(rs.data)
+    } catch (error) {
+      response.status(400).send("Bad Request")
+    }
   }
 
   private updateProfileV2 = async (request: RequestWithEntity<User>, response: Response, next: NextFunction) => {
