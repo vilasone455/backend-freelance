@@ -7,14 +7,13 @@ export class Skill {
     @PrimaryGeneratedColumn()
     id: number;
 
+    @ManyToOne(() => Profile, p => p.skillSet)
+    profile : Profile
 
-    @Column()
+    @Column({default : ""})
     skillName: string;
 
-    @Column()
-    skillClass: string;
-
-    @Column()
+    @Column({default : 1})
     level: string;
 
 }

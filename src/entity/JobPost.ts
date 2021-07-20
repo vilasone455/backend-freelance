@@ -1,5 +1,6 @@
 import {Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, CreateDateColumn} from "typeorm";
 import { Category } from "./Category";
+import { JobSkill } from "./JobSkill";
 
 import { Proposal } from "./Proposal";
 
@@ -41,6 +42,9 @@ export class JobPost {
 
     @OneToMany(() => Proposal , p => p.jobPost )
     proposals : Proposal[]
+
+    @OneToMany(() => JobSkill , j => j.jobPost )
+    skillSet : JobSkill[]
 
     @Column()
     description: string;

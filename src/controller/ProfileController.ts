@@ -57,11 +57,14 @@ class ProfileController implements Controller {
 
   private async addProfileItem<T>(entity : EntityTarget<T> , request: Request) : Promise<DataWithError<T>> {
     const user = await jwtToUser(request)
-    if(!user.error) return {data : null , error : user.error}
+    console.log(user.data)
+    if(user.error) return {data : null , error : user.error}
     const e : T = request.body
-    if(e["profile"] !== user.data.profile) return {data : null , error :  new BadPermissionExpection()}
+    console.log("before check")
+    if(e["profile"] !== user.data.profile.id) return {data : null , error :  new BadPermissionExpection()}
     const res = getRepository(entity)
     try {
+      console.log("try")
       const rs  = await res.save(e)
       return {data : rs , error : null}
     } catch (error) {
@@ -71,10 +74,12 @@ class ProfileController implements Controller {
 
   private addPortfilio = async (request: Request, response: Response, next: NextFunction) => {
     try {
+      console.log('do')
       const rs = await this.addProfileItem(Portfilio , request)
       if(rs.error) return next(rs.error)
       response.send(rs.data)
     } catch (error) {
+      console.log("get error")
       response.status(400).send("Bad Request")
     }
   }

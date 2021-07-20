@@ -61,6 +61,9 @@ export class Profile {
     @Column({default : ""})
     skills : string
 
+    @OneToMany(() => Skill, s => s.profile)
+    skillSet: Skill[];
+
     @OneToMany(() => Education, e => e.profile)
     educations: Education[];
 

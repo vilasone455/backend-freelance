@@ -4,7 +4,7 @@ import Controller from '../interfaces/controller.interface';
 import * as jwt from 'jsonwebtoken';
 import { User, UserWithReview } from '../entity/User';
 import UserNotFoundException from '../exceptions/UserNotFoundException';
-import { getRepository } from 'typeorm';
+import { getRepository, In } from 'typeorm';
 import DataStoredInToken from '../interfaces/dataStoredInToken';
 
 import { AuthTokenViewStat } from './AuthTokenToViewStat';
@@ -20,6 +20,9 @@ import { UserType } from '../interfaces/UserType';
 import { Profile } from '../entity/Profile';
 import * as Formidable from 'formidable';
 import { v2 } from 'cloudinary'
+import { Category } from '../entity/Category';
+import { randomSkill, randomSkillSet } from './Util';
+import { Skill } from '../entity/Skill';
 class UserController implements Controller {
   public path = '/users';
   public router = Router();
@@ -31,13 +34,16 @@ class UserController implements Controller {
   }
 
   private initializeRoutes() {
+    this.router.get(`/ajustskill`, this.ajustSkill);
+    this.router.get(`/ajustcat`, this.ajustCategory);
     this.router.get(`/ajustuser`, this.ajustProfile);
     this.router.get(`/usertoken`, this.getUserByToken);
     this.router.get(`${this.path}/:id`, this.getUserById);
     this.router.get(`${this.path}`, this.getAllUser);
     this.router.get(`/freelances`, this.getAllFreelance);
     this.router.get(`${this.path}all`, this.allUser);
-    this.router.put(`${this.path}image/:id`, this.updateImage);
+    this.router.put(`${this.path}image/:id`, authMiddleware ,this.updateImage);
+    this.router.post(`/skill` , this.addSkill);
     this.router.post(`${this.path}/addadmin`, roleMiddleWare([UserType.MainAdmin]) ,this.addAdmin);
     this.router.get(`${this.path}/getadmin`, roleMiddleWare([UserType.MainAdmin]) ,this.getAdmins);
     this.router.get(`${this.path}/jobs`, this.getAllJob);
@@ -53,25 +59,18 @@ class UserController implements Controller {
 
   private updateImage = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     const user = request.user
-    const id = Number(request.params.id)
-    if(user.id !== id) return next(new BadPermissionExpections())
-
+    console.log("updaet image")
+    console.log(user)
     const form = new Formidable();
-    form.parse(request, (err, fields, files) => {
-        
-        v2.uploader.upload(files.file.path,
-            { resource_type: "auto" })
-            .then((result) => {
-                response.status(200).send({
-                    message: "success",
-                    result,
-                });
-            }).catch((error) => {
-                response.status(500).send({
-                    message: "failure",
-                    error,
-                });
-            });
+    form.parse(request, async (err, fields, files) => {
+        try {
+          const rs = await v2.uploader.upload(files.file.path, { resource_type: "auto" })
+          user.image =  rs.secure_url
+          const u = await this.userRespotity.save(user)
+          response.send(u)
+        } catch (error) {
+          response.status(400).send("Cant Upload File")
+        }      
     });
 
   }
@@ -81,6 +80,50 @@ class UserController implements Controller {
     const users = await this.userRespotity.find();
     response.send(users)
   }
+
+
+  private ajustCategory = async (request: Request, response: Response, next: NextFunction) => {
+    const profileRes = getRepository(Profile)
+    const catRes = getRepository(Category)
+    const users = await this.userRespotity.find({relations : ["profile"] , where : {userType : UserType.Freelance}})
+    const process : Promise<Profile>[]  = []
+    const category = await catRes.findOne({relations : ["subCategorys"] , where : {id : 2}})
+    users.forEach(u => {
+      let pro = u.profile
+      if(pro && (!pro.category || !pro.subCategory) ){
+        pro.category = category
+        const random = Math.floor(Math.random()*category.subCategorys.length)
+        pro.subCategory = category.subCategorys[random]
+        process.push(profileRes.save(pro))
+      }
+      //this.userRespotity.save()
+    });
+    const rs = await Promise.all(process)
+    response.send(rs)
+  }
+
+  private ajustSkill = async (request: Request, response: Response, next: NextFunction) => {
+    const skillRes = getRepository(Skill)
+    
+    const users = await this.userRespotity.find({relations : ["profile" , "profile.skillSet"] , where : {userType : UserType.Freelance}})
+    const process : Promise<Skill>[]  = []
+    users.forEach(u => {
+      let pro = u.profile
+      if(pro && pro.skillSet){
+        if(pro.skillSet.length === 0){
+          let sk = randomSkillSet(4 , pro.id)
+          console.log(sk)
+          sk.forEach(s=>{
+            process.push(skillRes.save(s))
+          })
+        }
+      }
+      //this.userRespotity.save()
+    });
+    const rs = await Promise.all(process)
+    response.send(rs)
+  }
+
 
   private ajustProfile = async (request: Request, response: Response, next: NextFunction) => {
     const profileRes = getRepository(Profile)
@@ -98,6 +141,18 @@ class UserController implements Controller {
     });
     const rs = await Promise.all(process)
     response.send(rs)
+  }
+
+  private addSkill = async (request: Request, response: Response, next: NextFunction) => {
+    const skillRes = getRepository(Skill)
+    let skill : Skill = request.body
+    try {
+      const rs = await skillRes.save(skill)
+      response.send(rs)
+    } catch (error) {
+      response.status(400).send("Error Bad Request")
+    }
+    
   }
 
 
@@ -259,22 +314,64 @@ class UserController implements Controller {
 
   private getAllFreelance = async (request: Request, response: Response, next: NextFunction) => {
     let category = request.query["category"]
-    let subCategory = request.query["subcategory"]
+    let subCategory = request.query["subCategory"]
     let search = request.query["search"]
+
+    let startAge = request.query["startAge"]
+    let endAge = request.query["endAge"]
+
+    let startPrice = request.query["startPrice"]
+    let endPrice = request.query["endPrice"]
+
+    let skill = request.query["skill"]
+
+    let location = request.query["location"]
+
     let pag = getPagination(request)
     const chainQuery = this.userRespotity
       .createQueryBuilder('u')
       .orderBy('u.id', "DESC")
       .innerJoinAndSelect("u.profile" , "profile")
+      .leftJoinAndSelect("profile.skillSet" , "skillSet")
+      .leftJoinAndSelect("profile.category" , 'category')
+      .leftJoinAndSelect("profile.subCategory" , 'subCategory')
       .innerJoinAndSelect("profile.address" , "address")
       .leftJoinAndSelect("u.reviews" , "reviews")
       .where("u.userType=2 AND u.isBan=false")
 
       if(search) chainQuery.andWhere("profile.firstName like :name " , {name : '%' + search.toString() + '%'})
       if(subCategory){
-        chainQuery.andWhere("j.subCategoryId= :catId" , {catId : subCategory})
+        console.log("sub cat")
+        chainQuery.andWhere("profile.subCategoryId= :catId" , {catId : subCategory})
       }else if(category){
-        chainQuery.andWhere("j.categoryId= :catId" , {catId : category})
+        console.log("cat")
+        chainQuery.andWhere("profile.categoryId= :catId" , {catId : category})
+      }
+
+      if(location){
+        let locationLike = `'%${location.toString()}%'`
+        chainQuery.andWhere("profile.location like " + locationLike)
+      }
+
+      if(startPrice){
+        if(endPrice){
+          chainQuery.andWhere("profile.startPrice >= :startPrice AND profile.endPrice <= :endPrice" , {startPrice , endPrice})
+        }else{
+          chainQuery.andWhere("profile.startPrice <= :startPrice" , {startPrice})
+        }
+      }
+
+      if(skill){
+        let skillset = skill.toString().split(",")
+        let skillrs = "("
+        skillset.forEach(s => skillrs += "'" + s + "'," )
+        skillrs = skillrs.substring(0 , skillrs.length - 1)
+        skillrs += ")"
+        chainQuery.andWhere("skillSet.skillName IN "+skillrs )
+      }
+
+      if(startAge && endAge){
+        chainQuery.andWhere("profile.age >= :startAge AND profile.age <= :endAge" , {startAge , endAge})
       }
 
       const [data , count] = await chainQuery
@@ -321,7 +418,7 @@ class UserController implements Controller {
     
     const id = request.params.id;
     const user = await this.userRespotity.findOne({ relations: ["profile", "profile.educations" ,  "profile.address", 
-    "profile.workExs", "profile.portfilios" ,  "profile.languages"] , where : {
+    "profile.workExs", "profile.portfilios" ,  "profile.skillSet" , "profile.languages"] , where : {
       id : Number(id)
     } });    
     try {

@@ -31,16 +31,16 @@ class JobPostController implements Controller {
   private initializeRoutes() {
     this.router.get(`/ajustjob`, this.ajustJob);
     this.router.get(`${this.path}/:id`, this.getJobById);
-    this.router.get(`${this.path}/user/all`, authMiddleware , this.getJobByUser);
+    this.router.get(`${this.path}/user/all`, authMiddleware, this.getJobByUser);
     this.router.get(`${this.path}`, this.getAllJob);
-    this.router.get(`${this.path}/close/:id`, authMiddleware , this.closeJob);
+    this.router.get(`${this.path}/close/:id`, authMiddleware, this.closeJob);
     this.router.post(`${this.path}`, roleMiddleWare([UserType.User]), this.postJob);
     this.router.put(`${this.path}/:id`, permission(JobPost), this.updatePost);
     this.router.delete(`${this.path}/:id`, permission(JobPost), this.deletePost);
   }
 
-  private randomSkill = (n : number) => {
-    let skillsets : string[] = [
+  private randomSkill = (n: number) => {
+    let skillsets: string[] = [
       "Php",
       "Javascript",
       "Html",
@@ -54,11 +54,11 @@ class JobPostController implements Controller {
       "C++"
     ]
 
-    let rs : string[] = []
+    let rs: string[] = []
     for (let i = 0; i < n; i++) {
-      let indexof = Math.floor(Math.random()*skillsets.length)
+      let indexof = Math.floor(Math.random() * skillsets.length)
       rs.push(skillsets[indexof])
-      skillsets.splice(indexof , 1)
+      skillsets.splice(indexof, 1)
     }
     return rs.join()
   }
@@ -66,9 +66,9 @@ class JobPostController implements Controller {
   private ajustJob = async (request: Request, response: Response, next: NextFunction) => {
 
     const jobs = await this.jobPostRespotity.find()
-    const process : Promise<JobPost>[]  = []
+    const process: Promise<JobPost>[] = []
     jobs.forEach(u => {
-      if(u.description === "" || u.description === "cccc" || u.skillRequires.length < 10){
+      if (u.description === "" || u.description === "cccc" || u.skillRequires.length < 10) {
         u.skillRequires = this.randomSkill(5)
         u.description = "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries"
         process.push(this.jobPostRespotity.save(u))
@@ -96,39 +96,63 @@ class JobPostController implements Controller {
     let category = request.query["category"]
     let subCategory = request.query["subcategory"]
     let search = request.query["search"]
-      let pag = getPagination(request)
-      const chainQuery = this.jobPostRespotity
-        .createQueryBuilder('j')
-        .orderBy('j.id', "DESC")
-        .innerJoinAndSelect("j.user" , "user")
-        .where("user.userType=1 AND user.isBan=false AND j.status=1")
 
-  
-        if(search) chainQuery.andWhere("j.title like :name " , {name : '%' + search.toString() + '%'})
-        if(subCategory){
-          chainQuery.andWhere("j.subCategoryId= :catId" , {catId : subCategory})
-        }else if(category){
-          chainQuery.andWhere("j.categoryId= :catId" , {catId : category})
-        }
-  
-        const [data , count] = await chainQuery
-        .skip(pag.skip)
-        .take(pag.take)
-        .getManyAndCount()
-        response.send({count : count,val : data})
+    let startPrice = request.query["startPrice"]
+    let endPrice = request.query["endPrice"]
+    let location = request.query["location"]
+    let expReq = request.query["experienceRequire"]
+
+    let pag = getPagination(request)
+    const chainQuery = this.jobPostRespotity
+      .createQueryBuilder('j')
+      .orderBy('j.id', "DESC")
+      .innerJoinAndSelect("j.user", "user")
+      .leftJoinAndSelect("j.skillSet" , "skillSet")
+      .where("user.userType=1 AND user.isBan=false AND j.status=1")
+
+
+    if (search) chainQuery.andWhere("j.title like :name ", { name: '%' + search.toString() + '%' })
+    if (subCategory) {
+      chainQuery.andWhere("j.subCategoryId= :catId", { catId: subCategory })
+    } else if (category) {
+      chainQuery.andWhere("j.categoryId= :catId", { catId: category })
+    }
+
+    if(location){
+      let locationLike = `'%${location.toString()}%'`
+      chainQuery.andWhere("j.location like " + locationLike)
+    }
+
+    if(expReq){
+      chainQuery.andWhere("j.experienceRequire= :exp" , {exp : expReq})
+    }
+
+    if(startPrice){
+      if(endPrice){
+        chainQuery.andWhere("j.budgetStart >= :startPrice AND j.budgetEnd <= :endPrice" , {startPrice , endPrice})
+      }else{
+        chainQuery.andWhere("j.budgetStart <= :startPrice" , {startPrice})
+      }
+    }
+
+    const [data, count] = await chainQuery
+      .skip(pag.skip)
+      .take(pag.take)
+      .getManyAndCount()
+    response.send({ count: count, val: data })
   }
 
   private updatePost = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     console.log("update")
-    const updatePost : JobPost = request.body
+    const updatePost: JobPost = request.body
     try {
       await this.jobPostRespotity.save(updatePost)
       response.send(updatePost)
     } catch (error) {
       response.status(400).send("Bad Request")
     }
-    
-   
+
+
   }
 
   private deletePost = async (request: Request, response: Response, next: NextFunction) => {
@@ -147,9 +171,11 @@ class JobPostController implements Controller {
     const id = request.user.id
     const pag = getPagination(request)
     try {
-      const [val , count] = await this.jobPostRespotity.findAndCount({where:{user:{id:id}} , relations : ["proposals"] 
-      , take : pag.take , skip : pag.skip})
-      response.send({count , val})
+      const [val, count] = await this.jobPostRespotity.findAndCount({
+        where: { user: { id: id } }, relations: ["proposals"]
+        , take: pag.take, skip: pag.skip
+      })
+      response.send({ count, val })
     } catch (error) {
       console.log(error)
       response.status(400).send("Bad Request")
@@ -161,26 +187,30 @@ class JobPostController implements Controller {
     const auth = request.headers["authorization"]
     const id = request.params.id;
     const findId = Number(id)
-    
-    const jobQuery = await this.jobPostRespotity.findOne({ where: { id: findId }, relations: ["user" , "category" , 
-    "subCategory" , "proposals" , "proposals.user"] })
+
+    const jobQuery = await this.jobPostRespotity.findOne({
+      where: { id: findId }, relations: ["user", "category",
+        "subCategory", "proposals", "proposals.user"]
+    })
     try {
       if (jobQuery) {
 
-        const {user,viewStat} = await AuthTokenViewStat(auth, jobQuery.user)
-        if(viewStat === ViewStat.ViewOther || viewStat === ViewStat.ViewUser) jobQuery.proposals = []
-        if(viewStat === ViewStat.ViewFreelance){
-          const proposal = jobQuery.proposals.find(p=>p.freelance.id === user.id)
-          if(proposal !== undefined){
+        const { user, viewStat } = await AuthTokenViewStat(auth, jobQuery.user)
+        if (viewStat === ViewStat.ViewOther || viewStat === ViewStat.ViewUser) jobQuery.proposals = []
+        if (viewStat === ViewStat.ViewFreelance) {
+          const proposal = jobQuery.proposals.find(p => p.freelance.id === user.id)
+          if (proposal !== undefined) {
             jobQuery.proposals = [proposal]
-          }else jobQuery.proposals = []
-  
+          } else jobQuery.proposals = []
+
         }
-        const similarJobs = await this.jobPostRespotity.find({where : {
-          category : jobQuery.category
-        } , take : 5})
-        
-        response.send({ ...jobQuery, similarJobs , viewStat });
+        const similarJobs = await this.jobPostRespotity.find({
+          where: {
+            category: jobQuery.category
+          }, take: 5
+        })
+
+        response.send({ ...jobQuery, similarJobs, viewStat });
       } else {
         response.status(404).send("Job not found")
       }
@@ -193,10 +223,10 @@ class JobPostController implements Controller {
   private closeJob = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     const id = request.user.id
     const jobId = request.params.id
-    const vaildUserType = [UserType.Admin , UserType.MainAdmin]
+    const vaildUserType = [UserType.Admin, UserType.MainAdmin]
     try {
       const job = await this.jobPostRespotity.findOne(jobId)
-      if((job.user !== request.user || vaildUserType.includes(request.user.userType)) || job.status === JobStatus.Close) return response.status(400).send("You cant close this job")
+      if ((job.user !== request.user || vaildUserType.includes(request.user.userType)) || job.status === JobStatus.Close) return response.status(400).send("You cant close this job")
       job.status = JobStatus.Close
       const rs = await this.jobPostRespotity.save(job)
       response.send(rs)
