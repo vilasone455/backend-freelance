@@ -317,11 +317,10 @@ class UserController implements Controller {
     let subCategory = request.query["subCategory"]
     let search = request.query["search"]
 
-    let startAge = request.query["startAge"]
-    let endAge = request.query["endAge"]
 
-    let startPrice = request.query["startPrice"]
-    let endPrice = request.query["endPrice"]
+    let age = request.query["age"]
+
+    let price = request.query["price"]
 
     let skill = request.query["skill"]
 
@@ -348,18 +347,29 @@ class UserController implements Controller {
         chainQuery.andWhere("profile.categoryId= :catId" , {catId : category})
       }
 
+      if(price){
+        let rs = price.toString().split("-")
+        if(rs.length === 1){
+          chainQuery.andWhere("profile.startPrice >= :start" , {start : rs[0] })
+        }else if(rs.length === 2){
+          chainQuery.andWhere("profile.startPrice >= :start AND profile.endPrice <= :end" , {start : rs[0] , end : rs[1] })
+        }
+      }
+
+      if(age){
+        let rs = age.toString().split("-")
+        if(rs.length === 1){
+          chainQuery.andWhere("profile.age >= :start" , {start : rs[0] })
+        }else if(rs.length === 2){
+          chainQuery.andWhere("profile.age >= :start AND profile.age <= :end" , {start : rs[0] , end : rs[1] })
+        }
+      }
+
       if(location){
         let locationLike = `'%${location.toString()}%'`
         chainQuery.andWhere("profile.location like " + locationLike)
       }
 
-      if(startPrice){
-        if(endPrice){
-          chainQuery.andWhere("profile.startPrice >= :startPrice AND profile.endPrice <= :endPrice" , {startPrice , endPrice})
-        }else{
-          chainQuery.andWhere("profile.startPrice <= :startPrice" , {startPrice})
-        }
-      }
 
       if(skill){
         let skillset = skill.toString().split(",")
@@ -370,9 +380,6 @@ class UserController implements Controller {
         chainQuery.andWhere("skillSet.skillName IN "+skillrs )
       }
 
-      if(startAge && endAge){
-        chainQuery.andWhere("profile.age >= :startAge AND profile.age <= :endAge" , {startAge , endAge})
-      }
 
       const [data , count] = await chainQuery
       .skip(pag.skip)

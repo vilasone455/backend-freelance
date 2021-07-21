@@ -94,13 +94,13 @@ class JobPostController implements Controller {
 
   private getAllJob = async (request: Request, response: Response, next: NextFunction) => {
     let category = request.query["category"]
-    let subCategory = request.query["subcategory"]
+    let subCategory = request.query["subCategory"]
     let search = request.query["search"]
 
-    let startPrice = request.query["startPrice"]
-    let endPrice = request.query["endPrice"]
+    let skill = request.query["skill"]
     let location = request.query["location"]
     let expReq = request.query["experienceRequire"]
+    let price = request.query["price"]
 
     let pag = getPagination(request)
     const chainQuery = this.jobPostRespotity
@@ -124,16 +124,32 @@ class JobPostController implements Controller {
     }
 
     if(expReq){
-      chainQuery.andWhere("j.experienceRequire= :exp" , {exp : expReq})
-    }
-
-    if(startPrice){
-      if(endPrice){
-        chainQuery.andWhere("j.budgetStart >= :startPrice AND j.budgetEnd <= :endPrice" , {startPrice , endPrice})
-      }else{
-        chainQuery.andWhere("j.budgetStart <= :startPrice" , {startPrice})
+      let rs = expReq.toString().split("-")
+      if(rs.length === 1){
+        chainQuery.andWhere("j.experienceRequire >= :start" , {start : rs[0] })
+      }else if(rs.length === 2){
+        chainQuery.andWhere("j.experienceRequire >= :start AND j.experienceRequire <= :end" , {start : rs[0] , end : rs[1] })
       }
     }
+
+    if(price){
+      let rs = price.toString().split("-")
+      if(rs.length === 1){
+        chainQuery.andWhere("j.budgetStart >= :start" , {start : rs[0] })
+      }else if(rs.length === 2){
+        chainQuery.andWhere("j.budgetStart >= :start AND j.budgetEnd <= :end" , {start : rs[0] , end : rs[1] })
+      }
+    }
+
+    if(skill){
+      let skillset = skill.toString().split(",")
+      let skillrs = "("
+      skillset.forEach(s => skillrs += "'" + s + "'," )
+      skillrs = skillrs.substring(0 , skillrs.length - 1)
+      skillrs += ")"
+      chainQuery.andWhere("skillSet.skillName IN "+skillrs )
+    }
+
 
     const [data, count] = await chainQuery
       .skip(pag.skip)
