@@ -16,9 +16,9 @@ export class Education {
     @Column()
     degree: string;
 
-    @Column()
-    start: string;
+    @Column({nullable : true})
+    start: Date;
 
-    @Column()
-    end: string;
+    @Column({nullable : true})
+    end: Date;
 }

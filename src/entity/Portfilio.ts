@@ -19,11 +19,11 @@ export class Portfilio {
     @Column()
     link: string;
 
-    @Column()
-    start: string;
+    @Column({nullable : true})
+    start: Date;
 
-    @Column()
-    end: string;
+    @Column({nullable : true})
+    end: Date;
 
     @Column({default:""})
     portfilioImages: string;
