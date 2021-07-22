@@ -23,6 +23,9 @@ import { v2 } from 'cloudinary'
 import { Category } from '../entity/Category';
 import { randomSkill, randomSkillSet } from './Util';
 import { Skill } from '../entity/Skill';
+import { Portfilio } from '../entity/Portfilio';
+import { ViewStat } from '../interfaces/ViewStat';
+
 class UserController implements Controller {
   public path = '/users';
   public router = Router();
@@ -35,6 +38,7 @@ class UserController implements Controller {
 
   private initializeRoutes() {
     this.router.get(`/ajustskill`, this.ajustSkill);
+    this.router.get(`/portfilio/:id`, this.getPortfilio);
     this.router.get(`/ajustcat`, this.ajustCategory);
     this.router.get(`/ajustuser`, this.ajustProfile);
     this.router.get(`/usertoken`, this.getUserByToken);
@@ -306,6 +310,21 @@ class UserController implements Controller {
       const [data,count] = await unbanRes.findAndCount({relations:["user" , "admin"] , order:{id:"DESC"} , skip : pag.skip , take : pag.take })
 
       response.send({count : count,val : data})
+    } catch (error) {
+      response.status(400).send("Bad Request")
+    }
+    
+  }
+
+  private getPortfilio = async (request: RequestWithUser, response: Response, next: NextFunction) => {
+    const user = request.user
+    const portRes = getRepository(Portfilio)
+    const id = request.params.id
+    try {
+      let viewStat = ViewStat.ViewOther
+      const rs = await portRes.findOne({where : {id : id} , relations : ["profile" , "profile.user"]})
+      if(rs.profile.user === user) viewStat = ViewStat.ViewSelf
+      response.send({...rs , viewStat})
     } catch (error) {
       response.status(400).send("Bad Request")
     }
