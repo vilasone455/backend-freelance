@@ -48,7 +48,9 @@ class UserController implements Controller {
     this.router.get(`${this.path}all`, this.allUser);
     this.router.put(`${this.path}image/:id`, authMiddleware ,this.updateImage);
     this.router.post(`/skill` , this.addSkill);
+
     this.router.post(`${this.path}/addadmin`, roleMiddleWare([UserType.MainAdmin]) ,this.addAdmin);
+    this.router.put(`${this.path}/editadmin/:id`, roleMiddleWare([UserType.MainAdmin]) ,this.editAdmin);
     this.router.get(`${this.path}/getadmin`, roleMiddleWare([UserType.MainAdmin]) ,this.getAdmins);
     this.router.get(`${this.path}/jobs`, this.getAllJob);
     
@@ -161,6 +163,21 @@ class UserController implements Controller {
 
 
   private addAdmin = async (request: Request, response: Response, next: NextFunction) => {
+    let pag = getPagination(request)
+    let u : User = request.body
+    u.userType = 3
+    try {
+      await this.userRespotity.save(u)
+      const [val , count] = await this.userRespotity.findAndCount({skip : pag.skip , take : pag.take , order:{id:"DESC"}  , where : {userType : 3}})
+      response.send({val , count})
+    } catch (error) {
+      console.log(error)
+      response.status(400).send("Bad Request")
+    }
+
+  }
+
+  private editAdmin = async (request: Request, response: Response, next: NextFunction) => {
     let u : User = request.body
     u.userType = 3
     const users = await this.userRespotity.save(u)
@@ -168,8 +185,10 @@ class UserController implements Controller {
   }
 
   private getAdmins = async (request: Request, response: Response, next: NextFunction) => {
-    const users = await this.userRespotity.find({where : {userType : UserType.Admin}})
-    response.send(users)
+    let pag = getPagination(request)
+    const [val , count] = await this.userRespotity.findAndCount({where : {userType : UserType.Admin} , skip : pag.skip , 
+    take : pag.take , order:{id:"DESC"} })
+    response.send({val , count})
   }
 
   private getAllJob = async (request: Request, response: Response, next: NextFunction) => {

@@ -39,16 +39,13 @@ class AuthenticationController implements Controller {
   private registrationAdmin = async (request: Request, response: Response, next: NextFunction) => {
     const key = request.params.appkey
     if (key !== process.env.SECRET_KEY) next(new BadPermissionExpections())
-    const userData: CreateFreelanceDto = request.body;
+    const userData: CreateUserDto = request.body;
     try {
       const {
         cookie,
         user,
       } = await this.authenticationService.register(userData, true);
 
-      const profileRes = getRepository(Profile)
-      //const profile = await profileRes.save(userData.profile)
-      //profile
 
       response.send(user);
     } catch (error) {

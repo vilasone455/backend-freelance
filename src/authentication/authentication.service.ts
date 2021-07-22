@@ -22,7 +22,7 @@ class AuthenticationService {
       throw new UserWithThatEmailAlreadyExistsException(userData.userEmail);
     }
     if(isAdmin == false){
-      if(userData.userType === 3) userData.userType = 1
+      if(userData.userType === 4 || userData.userType === 3) userData.userType = 1
     }
 
     const hashedPassword = await bcrypt.hash(userData.userPassword, 10);
