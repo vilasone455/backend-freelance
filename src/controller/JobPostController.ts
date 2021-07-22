@@ -245,9 +245,17 @@ class JobPostController implements Controller {
       console.log("close job")
       const job = await this.jobPostRespotity.findOne({where : {id : jobId} , relations : ["user"]})
       console.log(job)
-      console.log("is owner" + (job.user !== request.user && !vaildUserType.includes(request.user.userType)))
-      console.log("is close " + (job.status === JobStatus.Close))
-      if ((job.user !== request.user && !vaildUserType.includes(request.user.userType)) || job.status !== JobStatus.Close) return response.status(400).send("You cant close this job")
+
+     
+      let isNotOwn = job.user.id !== request.user.id && !vaildUserType.includes(request.user.userType)
+      let isClose = job.status === JobStatus.Close
+
+      console.log(isNotOwn || isNotOwn)
+      if (isNotOwn || isClose) {
+        return response.status(400).send("You cant close this job")
+      }else{
+        console.log("yesss")
+      }
       console.log("work")
       job.status = JobStatus.Close
 
