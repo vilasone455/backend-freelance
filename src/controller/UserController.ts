@@ -183,6 +183,8 @@ class UserController implements Controller {
   private editAdmin = async (request: Request, response: Response, next: NextFunction) => {
     let u : User = request.body
     const id = request.params.id
+    console.log(id)
+    console.log(u)
     if(Number(id) !== u.id) return next(new BadPermissionExpections())
     const editUser = await this.userRespotity.findOne(id)
     u.userType = 3
