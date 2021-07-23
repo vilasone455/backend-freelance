@@ -25,6 +25,7 @@ import { randomSkill, randomSkillSet } from './Util';
 import { Skill } from '../entity/Skill';
 import { Portfilio } from '../entity/Portfilio';
 import { ViewStat } from '../interfaces/ViewStat';
+import * as bcrypt from 'bcrypt';
 
 class UserController implements Controller {
   public path = '/users';
@@ -165,6 +166,8 @@ class UserController implements Controller {
   private addAdmin = async (request: Request, response: Response, next: NextFunction) => {
     let pag = getPagination(request)
     let u : User = request.body
+    const hashedPassword = await bcrypt.hash(u.userPassword, 10);
+    u.userPassword = hashedPassword
     u.userType = 3
     try {
       await this.userRespotity.save(u)
@@ -179,7 +182,11 @@ class UserController implements Controller {
 
   private editAdmin = async (request: Request, response: Response, next: NextFunction) => {
     let u : User = request.body
+    const id = request.params.id
+    if(Number(id) !== u.id) return next(new BadPermissionExpections())
+    const editUser = await this.userRespotity.findOne(id)
     u.userType = 3
+    u.userPassword = editUser.userPassword
     const users = await this.userRespotity.save(u)
     response.send(users)
   }
