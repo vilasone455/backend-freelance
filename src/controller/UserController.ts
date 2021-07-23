@@ -51,7 +51,7 @@ class UserController implements Controller {
     this.router.post(`/skill` , this.addSkill);
 
     this.router.post(`/admin/addadmin`, roleMiddleWare([UserType.MainAdmin]) ,this.addAdmin);
-    this.router.put(`/admin/editadmin/:id`, roleMiddleWare([UserType.MainAdmin]) ,this.editAdmin);
+    this.router.put(`/admin/editadmin/:id`, roleMiddleWare([UserType.MainAdmin] , false) ,this.editAdmin);
     this.router.get(`/admin/getadmin`, roleMiddleWare([UserType.MainAdmin]) ,this.getAdmins);
     this.router.get(`${this.path}/jobs`, this.getAllJob);
     
