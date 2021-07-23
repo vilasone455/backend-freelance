@@ -218,12 +218,12 @@ class UserController implements Controller {
   }
 
   private banUser = async (request: RequestWithUser, response: Response, next: NextFunction) => {
-    const take = Number(request.query["take"]) || 5
+    const pag = getPagination(request)
     const user = request.user
 
     const banRes = getRepository(BanUser)
     const ban : BanUser = request.body
-    const banuser = await this.userRespotity.findOne(ban.user)
+    const banuser = await this.userRespotity.findOne(ban.user.id)
     try {
 
       console.log(banuser)
@@ -233,9 +233,10 @@ class UserController implements Controller {
         ban.admin = user
         await banRes.save(ban)
         await this.userRespotity.save(banuser)
-        const [data,count] = await banRes.findAndCount({relations:["user" , "admin"] , order:{id:"DESC"} , skip : 0 , take : take  })
+        const [data,count] = await banRes.findAndCount({relations:["user" , "admin"] , order:{id:"DESC"} , skip : pag.skip , take : pag.take  })
         response.send({count : count,val : data})
       }else{
+        console.log("canot find user")
         response.status(404).send("Cant find user")
       }
       
@@ -247,12 +248,12 @@ class UserController implements Controller {
   }
 
   private unBanUser = async (request: RequestWithUser, response: Response, next: NextFunction) => {
-    const take = Number(request.query["take"]) || 5
+    const pag = getPagination(request)
     const user = request.user
 
     const unbanRes = getRepository(UnBanUser)
     const unBanData : UnBanUser = request.body
-    const banUser = await this.userRespotity.findOne(unBanData.user)
+    const banUser = await this.userRespotity.findOne(unBanData.user.id)
     if(banUser){
       if(banUser.userType === UserType.Admin && user.userType === UserType.Admin) return next(new BadPermissionExpections())
       if(banUser.isBan){
@@ -261,7 +262,7 @@ class UserController implements Controller {
         try {
           const rs = await unbanRes.save(unBanData)
           await this.userRespotity.save(banUser)
-          const [data,count] = await unbanRes.findAndCount({relations:["user" , "admin"] , order:{id:"DESC"} , skip : 0 , take : take  })
+          const [data,count] = await unbanRes.findAndCount({relations:["user" , "admin"] , order:{id:"DESC"} , skip : pag.skip , take : pag.take  })
           response.send({count : count,val : data})
         } catch (error) {
           response.status(400).send("Bad Request")
@@ -275,19 +276,19 @@ class UserController implements Controller {
   }
 
   private warnUser = async (request: RequestWithUser, response: Response, next: NextFunction) => {
-    const take = Number(request.query["take"]) || 5
+    const pag = getPagination(request)
     const user = request.user
 
     const warnRes = getRepository(WarnUser)
     const warn : WarnUser = request.body
-    const warnuser = await this.userRespotity.findOne(warn.user)
+    const warnuser = await this.userRespotity.findOne(warn.user.id)
     try {
 
       if(warnuser){
         if((warnuser.userType === UserType.Admin && user.userType === UserType.Admin ) || warnuser.isBan) return next(new BadPermissionExpections())
         warn.admin = user
         await warnRes.save(warn)
-        const [data,count] = await warnRes.findAndCount({relations:["user" , "admin"] , order:{id:"DESC"} , skip : 0 , take : take  })
+        const [data,count] = await warnRes.findAndCount({relations:["user" , "admin"] , order:{id:"DESC"} , skip : pag.skip , take : pag.take  })
         response.send({count : count,val : data})
       }else{
         response.status(404).send("User Cannot Find")
