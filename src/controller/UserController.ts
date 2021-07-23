@@ -49,9 +49,9 @@ class UserController implements Controller {
     this.router.put(`${this.path}image/:id`, authMiddleware ,this.updateImage);
     this.router.post(`/skill` , this.addSkill);
 
-    this.router.post(`${this.path}/addadmin`, roleMiddleWare([UserType.MainAdmin]) ,this.addAdmin);
-    this.router.put(`${this.path}/editadmin/:id`, roleMiddleWare([UserType.MainAdmin]) ,this.editAdmin);
-    this.router.get(`${this.path}/getadmin`, roleMiddleWare([UserType.MainAdmin]) ,this.getAdmins);
+    this.router.post(`/admin/addadmin`, roleMiddleWare([UserType.MainAdmin]) ,this.addAdmin);
+    this.router.put(`/admin/editadmin/:id`, roleMiddleWare([UserType.MainAdmin]) ,this.editAdmin);
+    this.router.get(`/admin/getadmin`, roleMiddleWare([UserType.MainAdmin]) ,this.getAdmins);
     this.router.get(`${this.path}/jobs`, this.getAllJob);
     
     this.router.post(`${this.path}/ban`, roleMiddleWare([UserType.Admin , UserType.MainAdmin]) , this.banUser);
@@ -186,8 +186,7 @@ class UserController implements Controller {
 
   private getAdmins = async (request: Request, response: Response, next: NextFunction) => {
     let pag = getPagination(request)
-    const [val , count] = await this.userRespotity.findAndCount({where : {userType : UserType.Admin} , skip : pag.skip , 
-    take : pag.take , order:{id:"DESC"} })
+    const [val , count] = await this.userRespotity.findAndCount({where : {userType : 3} ,skip : pag.skip , take : pag.take , order:{id:"DESC"}} )
     response.send({val , count})
   }
 

@@ -20,6 +20,7 @@ function roleMiddleWare<T>(roles : UserType[] = [] , isAdd = true): RequestHandl
                 const verificationResponse = jwt.verify(auth, process.env.SECRET_KEY) as DataStoredInToken;
                 const userTokenId = verificationResponse._id;
                 const user = await userRepository.findOne({ id: userTokenId });
+                console.log("get user")
                 if (user) {
                     req.user = user;
                     if(roles.length === 0) next()
