@@ -16,6 +16,7 @@ import { ViewStat } from '../interfaces/ViewStat';
 import authMiddleware from '../middleware/auth.middleware';
 import { getPagination } from '../util/pagination';
 import { JobStatus } from '../interfaces/JobStatus';
+import { JobSkill } from '../entity/JobSkill';
 
 
 class JobPostController implements Controller {
@@ -23,6 +24,7 @@ class JobPostController implements Controller {
   public router = Router();
 
   private jobPostRespotity = getRepository(JobPost);
+  private skillRes = getRepository(JobSkill);
 
   constructor() {
     this.initializeRoutes();
@@ -85,6 +87,8 @@ class JobPostController implements Controller {
     const user = request.user
     post.user = user
     try {
+      const skills = await this.skillRes.save(post.skillSet)
+      post.skillSet = skills
       await this.jobPostRespotity.save(post)
       response.send(post)
     } catch (error) {
@@ -159,9 +163,10 @@ class JobPostController implements Controller {
   }
 
   private updatePost = async (request: RequestWithUser, response: Response, next: NextFunction) => {
-    console.log("update")
     const updatePost: JobPost = request.body
     try {
+      const skills = await this.skillRes.save(updatePost.skillSet)
+      updatePost.skillSet = skills
       await this.jobPostRespotity.save(updatePost)
       response.send(updatePost)
     } catch (error) {
@@ -206,7 +211,7 @@ class JobPostController implements Controller {
 
     const jobQuery = await this.jobPostRespotity.findOne({
       where: { id: findId }, relations: ["user", "category",
-        "subCategory", "proposals", "proposals.user"]
+        "subCategory", "proposals", "proposals.user" , "skillSet"]
     })
     try {
       if (jobQuery) {
