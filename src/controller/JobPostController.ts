@@ -17,6 +17,7 @@ import authMiddleware from '../middleware/auth.middleware';
 import { getPagination } from '../util/pagination';
 import { JobStatus } from '../interfaces/JobStatus';
 import { JobSkill } from '../entity/JobSkill';
+import { randomJobSkillSet, randomSkillSet } from './Util';
 
 
 class JobPostController implements Controller {
@@ -31,6 +32,7 @@ class JobPostController implements Controller {
   }
 
   private initializeRoutes() {
+    this.router.get(`/ajustjobskill`, this.ajustSkill);
     this.router.get(`/ajustjob`, this.ajustJob);
     this.router.get(`${this.path}/:id`, this.getJobById);
     this.router.get(`${this.path}/user/all`, authMiddleware, this.getJobByUser);
@@ -63,6 +65,28 @@ class JobPostController implements Controller {
       skillsets.splice(indexof, 1)
     }
     return rs.join()
+  }
+
+  private ajustSkill = async (request: Request, response: Response, next: NextFunction) => {
+    const skillRes = getRepository(JobSkill)
+    const jobs = await this.jobPostRespotity.find({where : {status : JobStatus.Open} , relations : ["skillSet"]})
+    const process : Promise<JobSkill>[]  = []
+    jobs.forEach(u => {
+
+      if(u.skillSet.length === 0){
+          if(u.skillRequires !== ""){
+            let sk = randomJobSkillSet(u.skillRequires , u.id)
+   
+            sk.forEach(s=>{
+              process.push(skillRes.save(s))
+            })
+          }
+
+      }
+      //this.userRespotity.save()
+    });
+    const rs = await Promise.all(process)
+    response.send(rs)
   }
 
   private ajustJob = async (request: Request, response: Response, next: NextFunction) => {

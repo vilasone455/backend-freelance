@@ -21,6 +21,7 @@ import RequestWithEntity from '../interfaces/requestWithEntity.interface';
 import { Language } from '../entity/Language';
 
 import BadPermissionExpection from '../exceptions/BadPermissionExpection';
+import { Skill } from '../entity/Skill';
 
 enum Gender {
   Male = 1,
@@ -176,6 +177,7 @@ class ProfileController implements Controller {
       const lanRes = getRepository(Language)
       const educationRes = getRepository(Education)
       const portfilioRes = getRepository(Portfilio)
+      const skillRes = getRepository(Skill)
 
       const newAddress = await addressRes.save(profile.address)
      // const newGeneral = await generalRes.save(profile.generalProfile)
@@ -183,6 +185,7 @@ class ProfileController implements Controller {
       const lans = await lanRes.save(profile.languages)
       const educations = await educationRes.save(profile.educations)
       const portfilios = await portfilioRes.save(profile.portfilios)
+      const skillSet = await skillRes.save(profile.skillSet)
 
       profile.address = newAddress
      // profile.generalProfile = newGeneral
@@ -190,6 +193,7 @@ class ProfileController implements Controller {
       profile.languages = lans
       profile.educations = educations
       profile.portfilios = portfilios
+      profile.skillSet = skillSet
 
       const rs = await this.profileRespotity.save(profile)
 

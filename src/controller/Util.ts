@@ -1,3 +1,4 @@
+import { JobSkill } from "src/entity/JobSkill";
 import { Skill } from "src/entity/Skill";
 
 const isExpire = (dateNow : Date , expireDate : Date) => {
@@ -39,3 +40,14 @@ export const randomSkill = (n: number) => {
     });
     return rs
   }
+
+  export const randomJobSkillSet = (str : string , p : number) => {
+    let jobskill = str.split(",")
+    let rs : JobSkill[] = []
+    jobskill.forEach(s => {
+        let add : any = {skillName : s , jobPost : p}
+        rs.push(add)
+    });
+    return rs
+  }
+
