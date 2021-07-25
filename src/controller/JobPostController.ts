@@ -229,7 +229,7 @@ class JobPostController implements Controller {
         chainQuery.andWhere("j.status = :status" , {status})
       }
 
-      const [count , val] = await chainQuery
+      const [val , count] = await chainQuery
       .skip(pag.skip)
       .take(pag.take)
       .getManyAndCount()
