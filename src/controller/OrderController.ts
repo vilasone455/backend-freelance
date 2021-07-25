@@ -48,7 +48,7 @@ class OrderController implements Controller {
       .where("proposal.userId = :id or proposal.freelanceId=:id", { id })
 
     if(status) {
-      chainQuery.andWhere("o.status = :status" , {status})
+      chainQuery.andWhere("o.orderStatus = :status" , {status})
     }
 
     const [val , count] = await chainQuery
