@@ -223,6 +223,7 @@ class JobPostController implements Controller {
       //})
       const chainQuery= await this.jobPostRespotity.createQueryBuilder("j")
       .innerJoinAndSelect("j.user" , "user")
+      .innerJoinAndSelect("j.proposals" , "proposals")
       .where("j.userId = :uId" , {uId : id})
       
       if(status){
