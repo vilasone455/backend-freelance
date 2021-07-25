@@ -195,6 +195,8 @@ class ProfileController implements Controller {
       profile.portfilios = portfilios
       profile.skillSet = skillSet
 
+      console.log(skillSet)
+
       const rs = await this.profileRespotity.save(profile)
 
       user.profile = rs

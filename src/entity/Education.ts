@@ -16,6 +16,9 @@ export class Education {
     @Column()
     degree: string;
 
+    @Column({default : ""})
+    about: string;
+
     @Column({nullable : true})
     start: Date;
 
