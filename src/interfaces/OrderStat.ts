@@ -1,7 +1,7 @@
 export enum OrderStat{
-    Start = 1,
+    Start = 1, 
     WaitForFinish = 2,
-    Finish = 3,
+    Finish = 3,  // 3 and have review = rehire , 3 and dont have review = review
     Cancle = 4
 }
 

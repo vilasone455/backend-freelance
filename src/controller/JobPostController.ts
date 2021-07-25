@@ -216,10 +216,24 @@ class JobPostController implements Controller {
     const id = request.user.id
     const pag = getPagination(request)
     try {
-      const [val, count] = await this.jobPostRespotity.findAndCount({
-        where: { user: { id: id } }, relations: ["proposals"]
-        , take: pag.take, skip: pag.skip
-      })
+      let status = request.query["status"]
+      //const [val, count] = await this.jobPostRespotity.findAndCount({
+      //  where: { user: { id: id } }, relations: ["proposals"]
+      //  , take: pag.take, skip: pag.skip
+      //})
+      const chainQuery= await this.jobPostRespotity.createQueryBuilder("j")
+      .innerJoinAndSelect("j.user" , "user")
+      .where("j.userId = :uId" , {uId : id})
+      
+      if(status){
+        chainQuery.andWhere("j.status = :status" , {status})
+      }
+
+      const [count , val] = await chainQuery
+      .skip(pag.skip)
+      .take(pag.take)
+      .getManyAndCount()
+
       response.send({ count, val })
     } catch (error) {
       console.log(error)
