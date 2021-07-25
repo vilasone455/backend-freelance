@@ -207,12 +207,23 @@ class ProposalController implements Controller {
 
   private getProposalByUser = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     const id = request.user.id
+    const status = request.query["status"]
     const pag = getPagination(request , 15)
-    const [val , count] = await this.proposalRes.findAndCount({where : [
-      {"user" : {"id" : id} },
-      {"freelance" : {"id" : id} }
-    ] , 
-    relations : ["user" , "freelance" , "jobPost"] , take : pag.take , skip : pag.skip })
+    const chainQuery =  this.proposalRes.createQueryBuilder("p")
+    .innerJoinAndSelect("p.user" , "user")
+    .innerJoinAndSelect("p.freelance" , "freelance")
+    .innerJoinAndSelect("p.jobPost" , "jobPost")
+    .where("p.userId = :uId OR p.freelanceId = :uId", {uId : id})
+
+    if(status) {
+      chainQuery.andWhere("p.status = :status" , {status})
+    }
+
+    const [val , count] = await chainQuery
+    .skip(pag.skip)
+    .take(pag.take)
+    .getManyAndCount()
+    
     response.send({count , val})
   }
 
