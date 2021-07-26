@@ -37,6 +37,7 @@ class OrderController implements Controller {
     const id = request.user.id
     const pag = getPagination(request , 15)
     const status = request.query["status"]
+    console.log(status)
 
     const chainQuery  =  this.orderRespotity.createQueryBuilder("o")
       .innerJoinAndSelect("o.proposal", "proposal")
@@ -48,7 +49,7 @@ class OrderController implements Controller {
       .where("proposal.userId = :id or proposal.freelanceId=:id", { id })
 
     if(status) {
-      chainQuery.andWhere("o.orderStatus = :status" , {status})
+      chainQuery.andWhere("o.orderStatus = :status" , {status : Number(status).toString()})
     }
 
     const [val , count] = await chainQuery
