@@ -37,18 +37,21 @@ class OrderController implements Controller {
     const id = request.user.id
     const pag = getPagination(request , 15)
     const status = request.query["status"]
-    console.log(status)
-
+  
+    
     const chainQuery  =  this.orderRespotity.createQueryBuilder("o")
+      .orderBy('o.id', "DESC")
       .innerJoinAndSelect("o.proposal", "proposal")
       .leftJoinAndSelect("proposal.jobPost", "jobPost")
       .leftJoinAndSelect("o.review" , "review")
       .innerJoinAndSelect("proposal.user", "user")
       .innerJoinAndSelect("proposal.freelance", "freelance")
       .leftJoinAndSelect("o.payments", "payments")
-      .where("proposal.userId = :id or proposal.freelanceId=:id", { id })
+      .where("(proposal.userId = :id OR proposal.freelanceId=:id)", { id })
 
     if(status) {
+      console.log(status)
+      console.log("have status " + Number(status).toString())
       chainQuery.andWhere("o.orderStatus = :status" , {status : Number(status).toString()})
     }
 
@@ -56,6 +59,7 @@ class OrderController implements Controller {
     .skip(pag.skip)
     .take(pag.take)
     .getManyAndCount()
+    
     response.send({val , count})
   }
 

@@ -213,7 +213,7 @@ class ProposalController implements Controller {
     .innerJoinAndSelect("p.user" , "user")
     .innerJoinAndSelect("p.freelance" , "freelance")
     .innerJoinAndSelect("p.jobPost" , "jobPost")
-    .where("p.userId = :uId OR p.freelanceId = :uId", {uId : id})
+    .where("(p.userId = :uId OR p.freelanceId = :uId)", {uId : id})
 
     if(status) {
       chainQuery.andWhere("p.status = :status" , {status})
