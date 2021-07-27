@@ -1,6 +1,7 @@
-import {Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, UpdateDateColumn, CreateDateColumn} from "typeorm";
+import {Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, UpdateDateColumn, CreateDateColumn, OneToOne} from "typeorm";
 
 import { JobPost } from "./JobPost";
+import { Order } from "./Order";
 import { User } from "./User";
 
 @Entity()
@@ -29,6 +30,9 @@ export class Proposal {
 
     @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)", onUpdate: "CURRENT_TIMESTAMP(6)" })
     updatedAt: Date;
+
+    @OneToOne(() => Order, o => o.proposal) // specify inverse side as a second parameter
+    order : Order
 
     @ManyToOne(()=> User , u=>u.proposals)
     user : User

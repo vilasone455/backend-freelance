@@ -97,10 +97,8 @@ class ProposalController implements Controller {
       if(proposal.jobPost){
         if(isFreelance || proposal.status === ProposalStatus.FreelanceSend) return next(new BadPermissionExpections())
       }
-
       //isUser && ProposalStatus.UserSend
       //isFreelance && ProposalStatus.FreelanceSend
-
       if((isUser || proposal.status === ProposalStatus.UserSend) || (isFreelance && proposal.status === ProposalStatus.FreelanceSend)){
  
         const rs = await this.proposalRes.save(proposal as any)
@@ -216,6 +214,9 @@ class ProposalController implements Controller {
     .where("(p.userId = :uId OR p.freelanceId = :uId)", {uId : id})
 
     if(status) {
+      if(status.toString() == "3") {
+        chainQuery.innerJoinAndSelect("p.order" , "order")
+      }
       chainQuery.andWhere("p.status = :status" , {status})
     }
 
