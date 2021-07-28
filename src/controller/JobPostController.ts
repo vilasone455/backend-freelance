@@ -136,6 +136,7 @@ class JobPostController implements Controller {
       .orderBy('j.id', "DESC")
       .innerJoinAndSelect("j.user", "user")
       .leftJoinAndSelect("j.skillSet" , "skillSet")
+ 
       .where("user.userType=1 AND user.isBan=false AND j.status=1")
 
 
@@ -235,18 +236,23 @@ class JobPostController implements Controller {
     const auth = request.headers["authorization"]
     const id = request.params.id;
     const findId = Number(id)
-
+ 
     const jobQuery = await this.jobPostRespotity.findOne({
       where: { id: findId }, relations: ["user", "category",
-        "subCategory", "proposals", "proposals.user" , "skillSet"]
+        "subCategory", "proposals", "proposals.user" , "proposals.freelance" , "skillSet"]
     })
     try {
+
       if (jobQuery) {
 
         const { user, viewStat } = await AuthTokenViewStat(auth, jobQuery.user)
+   
         if (viewStat === ViewStat.ViewOther || viewStat === ViewStat.ViewUser) jobQuery.proposals = []
         if (viewStat === ViewStat.ViewFreelance) {
+  
           const proposal = jobQuery.proposals.find(p => p.freelance.id === user.id)
+          
+          console.log(proposal)
           if (proposal !== undefined) {
             jobQuery.proposals = [proposal]
           } else jobQuery.proposals = []
@@ -263,6 +269,7 @@ class JobPostController implements Controller {
         response.status(404).send("Job not found")
       }
     } catch (error) {
+      console.log(error)
       response.status(400).send("Invaid Token")
     }
 

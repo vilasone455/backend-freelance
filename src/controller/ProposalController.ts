@@ -198,8 +198,7 @@ class ProposalController implements Controller {
   }
 
   private getAllProposal = async (request: Request, response: Response, next: NextFunction) => {
-    const rs = await this.proposalRes.find({ relations: ["user" , "freelance" , "jobPost"] })
-
+    const rs = await this.proposalRes.find({ relations: ["user" , "freelance" , "jobPost"] , order : {id : "DESC"} })
     response.send(rs)
   }
 
