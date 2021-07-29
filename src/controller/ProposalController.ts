@@ -217,7 +217,7 @@ class ProposalController implements Controller {
     const chainQuery =  this.proposalRes.createQueryBuilder("p")
     .innerJoinAndSelect("p.user" , "user")
     .innerJoinAndSelect("p.freelance" , "freelance")
-    .innerJoinAndSelect("p.jobPost" , "jobPost")
+    .leftJoinAndSelect("p.jobPost" , "jobPost")
     .where("(p.userId = :uId OR p.freelanceId = :uId)", {uId : id})
 
     if(status) {
