@@ -18,6 +18,8 @@ import { getPagination } from '../util/pagination';
 import { JobStatus } from '../interfaces/JobStatus';
 import { JobSkill } from '../entity/JobSkill';
 import { randomJobSkillSet, randomSkillSet } from './Util';
+import { ProposalStatus } from '../interfaces/ProposalStatus';
+import { Proposal } from '../entity/Proposal';
 
 
 class JobPostController implements Controller {
@@ -66,6 +68,7 @@ class JobPostController implements Controller {
     }
     return rs.join()
   }
+
 
   private ajustSkill = async (request: Request, response: Response, next: NextFunction) => {
     const skillRes = getRepository(JobSkill)
@@ -179,7 +182,6 @@ class JobPostController implements Controller {
       chainQuery.andWhere("skillSet.skillName IN "+skillrs )
     }
 
-
     const [data, count] = await chainQuery
       .skip(pag.skip)
       .take(pag.take)
@@ -279,13 +281,13 @@ class JobPostController implements Controller {
     const id = request.user.id
     const jobId = request.params.id
     const vaildUserType = [UserType.Admin, UserType.MainAdmin]
+    let proposalRes = getRepository(Proposal)
     try {
       console.log(request.user)
       console.log("close job")
-      const job = await this.jobPostRespotity.findOne({where : {id : jobId} , relations : ["user"]})
+      const job = await this.jobPostRespotity.findOne({where : {id : jobId} , relations : ["user" , "proposals"]})
       console.log(job)
 
-     
       let isNotOwn = job.user.id !== request.user.id && !vaildUserType.includes(request.user.userType)
       let isClose = job.status === JobStatus.Close
 
@@ -297,6 +299,14 @@ class JobPostController implements Controller {
       }
       console.log("work")
       job.status = JobStatus.Close
+
+      if(job.proposals.length > 0){
+        let proposals = job.proposals
+        proposals.forEach(p=>{
+          p.status = ProposalStatus.Cancle
+        })
+        proposalRes.save(proposals)
+      }
 
       const rs = await this.jobPostRespotity.save(job)
       response.send(rs)

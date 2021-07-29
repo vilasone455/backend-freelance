@@ -139,7 +139,7 @@ class ProposalController implements Controller {
 
   private acceptOfferV2 = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     const user = request.user
-    const proposal = await this.proposalRes.findOne({where:{id:request.params.id} , relations:["user" , "freelance" , "jobPost"]})
+    const proposal = await this.proposalRes.findOne({where:{id:request.params.id} , relations:["user" , "freelance" , "jobPost" , "jobPost.proposals"]})
     try {
       console.log(proposal)
       const isUser = proposal.user.id === user.id
@@ -162,10 +162,18 @@ class ProposalController implements Controller {
         }
 
         proposal.status = OfferStat.Accept
-
+        //let process : Promise<Proposal>[] = []
         if(proposal.jobPost){
           let job = proposal.jobPost
           job.status = JobStatus.Close
+          if(job.proposals.length > 1){
+            let rejectAll = job.proposals.filter(p=>p.id !== proposal.id)
+            rejectAll.forEach(r=>{
+              r.status = ProposalStatus.Cancle
+            })
+            this.proposalRes.save(rejectAll)
+            console.log(rejectAll)
+          }
           await this.jobPostRes.save(job)
         }
 
