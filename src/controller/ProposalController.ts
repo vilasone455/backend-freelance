@@ -74,11 +74,11 @@ class ProposalController implements Controller {
         proposal.freelance = user
         proposal.status = ProposalStatus.FreelanceSend
       }else if (user.userType === UserType.User){
-        console.log(process.env.REST_ONE)
+        console.log("env is : "+process.env.REST_ONE)
         console.log("freelance id : " + proposal.freelance.toString())
 
         let message = { 
-          app_id: process.env.REST_ONE,
+          app_id: "12b2808d-4c08-4ea9-9d46-b9e3a4f6ca8e",
           contents: {"en": `${user.userEmail} is will hire you , are you interest?`},
           channel_for_external_user_ids: "push",
           include_external_user_ids: [proposal.freelance.toString()]
