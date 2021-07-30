@@ -18,6 +18,7 @@ import { ProposalStatus } from '../interfaces/ProposalStatus';
 import { JobPost } from '../entity/JobPost';
 import { JobStatus } from '../interfaces/JobStatus';
 import { getPagination } from '../util/pagination';
+import { onesignal } from '../util/onesignal';
 
 class ProposalController implements Controller {
   public path = '/proposal';
@@ -73,6 +74,17 @@ class ProposalController implements Controller {
         proposal.freelance = user
         proposal.status = ProposalStatus.FreelanceSend
       }else if (user.userType === UserType.User){
+        console.log(process.env.REST_ONE)
+        console.log("freelance id : " + proposal.freelance.toString())
+
+        let message = { 
+          app_id: process.env.REST_ONE,
+          contents: {"en": `${user.userEmail} is will hire you , are you interest?`},
+          channel_for_external_user_ids: "push",
+          include_external_user_ids: [proposal.freelance.toString()]
+        };
+        onesignal.post("" , message)
+
         proposal.user = user
         proposal.status = ProposalStatus.UserSend
       }
