@@ -46,7 +46,6 @@ class AuthenticationController implements Controller {
         user,
       } = await this.authenticationService.register(userData, true);
 
-
       response.send(user);
     } catch (error) {
       next(error);
@@ -97,7 +96,7 @@ class AuthenticationController implements Controller {
     console.log(request.body)
     const logInData: LogInDto = request.body;
     console.log(logInData)
-    const user = await this.userResposity.findOne({ where: { userEmail: logInData.userEmail } })
+    const user = await this.userResposity.findOne({ where: { userEmail: logInData.userEmail } , relations : ["profile"]})
     console.log("start login")
     console.log(user)
     if (user) {
@@ -106,9 +105,7 @@ class AuthenticationController implements Controller {
       console.log(isPasswordMatching)
       if (isPasswordMatching) {
         const tokenData = this.createToken(user);
-
         response.send({ ...user, tokenData });
-
       } else {
         next(new WrongCredentialsException());
       }
