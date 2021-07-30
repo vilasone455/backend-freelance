@@ -96,7 +96,7 @@ class AuthenticationController implements Controller {
     console.log(request.body)
     const logInData: LogInDto = request.body;
     console.log(logInData)
-    const user = await this.userResposity.findOne({ where: { userEmail: logInData.userEmail } , relations : ["profile"]})
+    const user = await this.userResposity.findOne({ where: { userEmail: logInData.userEmail } , relations : ["profile" , "profile.category"]})
     console.log("start login")
     console.log(user)
     if (user) {
