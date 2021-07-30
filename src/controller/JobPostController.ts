@@ -20,7 +20,7 @@ import { JobSkill } from '../entity/JobSkill';
 import { randomJobSkillSet, randomSkillSet } from './Util';
 import { ProposalStatus } from '../interfaces/ProposalStatus';
 import { Proposal } from '../entity/Proposal';
-
+import axios from 'axios'
 
 class JobPostController implements Controller {
   public path = '/jobpost';
@@ -114,10 +114,30 @@ class JobPostController implements Controller {
     const user = request.user
     post.user = user
     try {
+    
       const skills = await this.skillRes.save(post.skillSet)
+      
       post.skillSet = skills
-      await this.jobPostRespotity.save(post)
-      response.send(post)
+      let rs  = await this.jobPostRespotity.save(post)
+      let config = {
+        headers: {
+          "Authorization" : "Basic YTQyM2Y5ZTYtZDEzZS00NmI0LWE1MWEtNDI3ZTdkMDIwY2Fk",
+          "Content-Type": "application/json; charset=utf-8",
+        }
+      }
+      console.log("cat is : "+rs.category.id)
+      let msg = {
+        "app_id": "12b2808d-4c08-4ea9-9d46-b9e3a4f6ca8e",
+        "filters": [
+          {"field": "tag", "key": "category", "relation": "=", "value": rs.category.id}
+        ],
+        "data": {"foo": "bar"},
+        "headings": {"en": "We have new post check out it"},
+        "contents": {"en": "New post"}
+      }
+      
+      axios.post("https://onesignal.com/api/v1/notifications" , msg , config )
+      response.send(rs)
     } catch (error) {
       response.status(400).send("Bad Status")
     }
