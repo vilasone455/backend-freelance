@@ -129,7 +129,7 @@ class JobPostController implements Controller {
       let msg = {
         "app_id": "12b2808d-4c08-4ea9-9d46-b9e3a4f6ca8e",
         "filters": [
-          {"field": "tag", "key": "category", "relation": "=", "value": rs.category.id}
+          {"field": "tag", "key": "category", "relation": "=", "value": "2"}
         ],
         "data": {"foo": "bar"},
         "headings": {"en": "We have new post check out it"},
