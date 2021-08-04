@@ -23,6 +23,7 @@ import FileListController from "./controller/FileListController";
 
 import CloundFileController from "./controller/CloundFileController";
 import {v2} from 'cloudinary'
+import NoficationController from "./controller/NoficationController";
 
 const config : any = {
     "name": "default",
@@ -82,7 +83,8 @@ app.use(bodyParser.urlencoded({extended: true}))
         new MessageController(),
         new PaymentController(),
         new FileListController(),
-        new CloundFileController()
+        new CloundFileController(),
+        new NoficationController()
     ]
     
     controllers.forEach((controller) => {

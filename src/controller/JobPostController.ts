@@ -73,18 +73,18 @@ class JobPostController implements Controller {
 
   private ajustSkill = async (request: Request, response: Response, next: NextFunction) => {
     const skillRes = getRepository(JobSkill)
-    const jobs = await this.jobPostRespotity.find({where : {status : JobStatus.Open} , relations : ["skillSet"]})
-    const process : Promise<JobSkill>[]  = []
+    const jobs = await this.jobPostRespotity.find({ where: { status: JobStatus.Open }, relations: ["skillSet"] })
+    const process: Promise<JobSkill>[] = []
     jobs.forEach(u => {
 
-      if(u.skillSet.length === 0){
-          if(u.skillRequires !== ""){
-            let sk = randomJobSkillSet(u.skillRequires , u.id)
-   
-            sk.forEach(s=>{
-              process.push(skillRes.save(s))
-            })
-          }
+      if (u.skillSet.length === 0) {
+        if (u.skillRequires !== "") {
+          let sk = randomJobSkillSet(u.skillRequires, u.id)
+
+          sk.forEach(s => {
+            process.push(skillRes.save(s))
+          })
+        }
 
       }
       //this.userRespotity.save()
@@ -115,24 +115,24 @@ class JobPostController implements Controller {
     const user = request.user
     post.user = user
     try {
-    
+
       const skills = await this.skillRes.save(post.skillSet)
-      
+
       post.skillSet = skills
-      let rs  = await this.jobPostRespotity.save(post)
-  
+      let rs = await this.jobPostRespotity.save(post)
+
       console.log("cat is : " + rs.category)
       let msg = {
         "app_id": "12b2808d-4c08-4ea9-9d46-b9e3a4f6ca8e",
         "filters": [
-          {"field": "tag", "key": "category", "relation": "=", "value": post.category}
+          { "field": "tag", "key": "category", "relation": "=", "value": post.category }
         ],
-        "data": {"foo": "bar"},
-        "headings": {"en": "We have new post check out it"},
-        "contents": {"en": "New post"}
+        "data": { "foo": "bar" },
+        "headings": { "en": "We have new post check out it" },
+        "contents": { "en": "New post" }
       }
-      
-      onesignal.post("" , msg)
+
+      onesignal.post("", msg)
       response.send(rs)
     } catch (error) {
       response.status(400).send("Bad Status")
@@ -154,8 +154,8 @@ class JobPostController implements Controller {
       .createQueryBuilder('j')
       .orderBy('j.id', "DESC")
       .innerJoinAndSelect("j.user", "user")
-      .leftJoinAndSelect("j.skillSet" , "skillSet")
- 
+      .leftJoinAndSelect("j.skillSet", "skillSet")
+
       .where("user.userType=1 AND user.isBan=false AND j.status=1")
 
 
@@ -166,36 +166,36 @@ class JobPostController implements Controller {
       chainQuery.andWhere("j.categoryId= :catId", { catId: category })
     }
 
-    if(location){
+    if (location) {
       let locationLike = `'%${location.toString()}%'`
       chainQuery.andWhere("j.location like " + locationLike)
     }
 
-    if(expReq){
+    if (expReq) {
       let rs = expReq.toString().split("-")
-      if(rs.length === 1){
-        chainQuery.andWhere("j.experienceRequire >= :start" , {start : rs[0] })
-      }else if(rs.length === 2){
-        chainQuery.andWhere("j.experienceRequire >= :start AND j.experienceRequire <= :end" , {start : rs[0] , end : rs[1] })
+      if (rs.length === 1) {
+        chainQuery.andWhere("j.experienceRequire >= :start", { start: rs[0] })
+      } else if (rs.length === 2) {
+        chainQuery.andWhere("j.experienceRequire >= :start AND j.experienceRequire <= :end", { start: rs[0], end: rs[1] })
       }
     }
 
-    if(price){
+    if (price) {
       let rs = price.toString().split("-")
-      if(rs.length === 1){
-        chainQuery.andWhere("j.budgetStart >= :start" , {start : rs[0] })
-      }else if(rs.length === 2){
-        chainQuery.andWhere("j.budgetStart >= :start AND j.budgetEnd <= :end" , {start : rs[0] , end : rs[1] })
+      if (rs.length === 1) {
+        chainQuery.andWhere("j.budgetStart >= :start", { start: rs[0] })
+      } else if (rs.length === 2) {
+        chainQuery.andWhere("j.budgetStart >= :start AND j.budgetEnd <= :end", { start: rs[0], end: rs[1] })
       }
     }
 
-    if(skill){
+    if (skill) {
       let skillset = skill.toString().split(",")
       let skillrs = "("
-      skillset.forEach(s => skillrs += "'" + s + "'," )
-      skillrs = skillrs.substring(0 , skillrs.length - 1)
+      skillset.forEach(s => skillrs += "'" + s + "',")
+      skillrs = skillrs.substring(0, skillrs.length - 1)
       skillrs += ")"
-      chainQuery.andWhere("skillSet.skillName IN "+skillrs )
+      chainQuery.andWhere("skillSet.skillName IN " + skillrs)
     }
 
     const [data, count] = await chainQuery
@@ -241,7 +241,7 @@ class JobPostController implements Controller {
         where: { user: { id: id } }, relations: ["proposals"]
         , take: pag.take, skip: pag.skip
       })
-     
+
       response.send({ count, val })
     } catch (error) {
       console.log(error)
@@ -254,22 +254,22 @@ class JobPostController implements Controller {
     const auth = request.headers["authorization"]
     const id = request.params.id;
     const findId = Number(id)
- 
+
     const jobQuery = await this.jobPostRespotity.findOne({
       where: { id: findId }, relations: ["user", "category",
-        "subCategory", "proposals", "proposals.user" , "proposals.freelance" , "skillSet"]
+        "subCategory", "proposals", "proposals.user", "proposals.freelance", "skillSet"]
     })
     try {
 
       if (jobQuery) {
 
         const { user, viewStat } = await AuthTokenViewStat(auth, jobQuery.user)
-   
+
         if (viewStat === ViewStat.ViewOther || viewStat === ViewStat.ViewUser) jobQuery.proposals = []
         if (viewStat === ViewStat.ViewFreelance) {
-  
+
           const proposal = jobQuery.proposals.find(p => p.freelance.id === user.id)
-          
+
           console.log(proposal)
           if (proposal !== undefined) {
             jobQuery.proposals = [proposal]
@@ -301,7 +301,7 @@ class JobPostController implements Controller {
     try {
       console.log(request.user)
       console.log("close job")
-      const job = await this.jobPostRespotity.findOne({where : {id : jobId} , relations : ["user" , "proposals"]})
+      const job = await this.jobPostRespotity.findOne({ where: { id: jobId }, relations: ["user", "proposals"] })
       console.log(job)
 
       let isNotOwn = job.user.id !== request.user.id && !vaildUserType.includes(request.user.userType)
@@ -310,19 +310,26 @@ class JobPostController implements Controller {
       console.log(isNotOwn || isNotOwn)
       if (isNotOwn || isClose) {
         return response.status(400).send("You cant close this job")
-      }else{
+      } else {
         console.log("yesss")
       }
       console.log("work")
       job.status = JobStatus.Close
 
-      if(job.proposals.length > 0){
-        let proposals = job.proposals
-        proposals.forEach(p=>{
-          p.status = ProposalStatus.Cancle
-        })
-        proposalRes.save(proposals)
+      if (job.proposals.length > 0) {
+        //let proposals = job.proposals
+        //proposals.forEach(p => {
+        //  p.status = ProposalStatus.Cancle
+        //})
+        await proposalRes
+          .createQueryBuilder()
+          .update(Proposal)
+          .set({ status:  ProposalStatus.Cancle })
+          .where("jobPostId = :id", { id: job.id })
+          .execute();
+        //proposalRes.save(proposals)
       }
+
 
       const rs = await this.jobPostRespotity.save(job)
       response.send(rs)

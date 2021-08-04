@@ -1,10 +1,23 @@
 import { JobSkill } from "src/entity/JobSkill";
 import { Skill } from "src/entity/Skill";
+import { NoficationType } from "../util/nofication-until";
+import { onesignal } from '../util/onesignal';
 
 const isExpire = (dateNow : Date , expireDate : Date) => {
     let a = new Date(dateNow.getFullYear(),dateNow.getMonth()+1,dateNow.getDate());
     let ex = new Date(expireDate.getFullYear(),expireDate.getMonth()+1,expireDate.getDate());
     return a.getTime() >= ex.getTime() 
+}
+
+interface AddNofication{
+  title : string
+  subjectId : number
+  objectId : number
+  url : string
+}
+
+const addNofication = (typeNofication : NoficationType , objectId : number) => {
+  //s
 }
 
 export const randomSkill = (n: number) => {

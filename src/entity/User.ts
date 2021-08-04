@@ -12,6 +12,7 @@ import { Review } from "./Review";
 import { UnBanUser } from "./UnBanUser";
 import { WarnUser } from "./WarnUser";
 import { WorkFile } from "./WorkFile";
+import {NoficationTb} from './NoficationTb'
 
 @Entity()
 export class User {
@@ -58,6 +59,12 @@ export class User {
 
     @OneToMany(()=>Message , p=>p.receiver)
     receiverMessages : Message[]
+
+    @OneToMany(()=>NoficationTb , n=>n.sender)
+    sendNofications : NoficationTb[]
+
+    @OneToMany(()=>NoficationTb , n=>n.receiver)
+    myNofications : NoficationTb[]
 
     @OneToMany(()=>WorkFile , f=>f.owner)
     files : WorkFile[]
