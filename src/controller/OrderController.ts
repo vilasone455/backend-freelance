@@ -5,7 +5,7 @@ import RequestWithUser from '../interfaces/requestWithUser.interface';
 import { Order } from '../entity/Order';
 import { OrderStat } from '../interfaces/OrderStat';
 import authMiddleware from '../middleware/auth.middleware';
-import { User } from '../entity/User';
+import { User, UserWithHireCount } from '../entity/User';
 import BadPermissionExpections from '../exceptions/BadPermissionExpection';
 import { getPagination } from '../util/pagination';
 
@@ -106,22 +106,27 @@ class OrderController implements Controller {
       .innerJoinAndSelect("freelance.profile", "profile")
       .where("proposal.userId = :id", { id })
       .getMany();
-    const users: User[] = []
+
+    const users: UserWithHireCount[] = []
     rs.forEach(r => {
-      if (users.findIndex(u => u.id === r.proposal.freelance.id) === -1) {
-        users.push(r.proposal.freelance)
+      let indexof = users.findIndex(u => u.id === r.proposal.freelance.id)
+      if (indexof === -1) {
+        users.push({...r.proposal.freelance , count : 1})
+      }else{
+        users[indexof].count += 1 
       }
     })
     response.send(users)
   }
 
   private getFreelanceByOrderV2 = async (request: RequestWithUser, response: Response, next: NextFunction) => {
+    console.log("get freelance by order : ")
     const id = request.params.id
     console.log("user id : " + id)
     //const r = await this.orderRespotity.query("select * from order")
     const rs = await this.orderRespotity.createQueryBuilder("o")
       .innerJoin("o.proposal" , "proposal")
-
+      
       .select([
         'sum(o.id)',
         'o.id',

@@ -92,6 +92,10 @@ export class User {
 
 }
 
+export interface UserWithHireCount extends User{
+    count : number
+}
+
 export interface UserWithReview extends User{
     reviewCount : number
     averageReview : number

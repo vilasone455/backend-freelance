@@ -64,7 +64,9 @@ class ProposalController implements Controller {
 
         const jobRes = getRepository(JobPost)
         const job = await jobRes.findOne({where : {id : proposal.jobPost } , relations : ["user"]})
-        if(job){     
+       
+        if(job){   
+            this.noficationService.addNofication(NoficationType.FreelanceSendProposalToYou , job.id , user.id , job.user.id )  
             proposal.status = ProposalStatus.FreelanceSend
             proposal.user = job.user
         }else{
@@ -183,10 +185,16 @@ class ProposalController implements Controller {
           job.status = JobStatus.Close
           if(job.proposals.length > 1){
             let rejectAll = job.proposals.filter(p=>p.id !== proposal.id)
-            rejectAll.forEach(r=>{
-              r.status = ProposalStatus.Cancle
-            })
-            this.proposalRes.save(rejectAll)
+            if(rejectAll.length > 0){
+              await this.proposalRes
+              .createQueryBuilder()
+              .update(Proposal)
+              .set({ status:  ProposalStatus.Cancle })
+              .where("jobPostId = :id AND freelanceId != :freelanceId", { id: job.id , freelanceId : proposal.freelance.id })
+              .execute();
+              this.noficationService.broadCast(NoficationType.UserRejectYou , job.id , user.id , rejectAll.map(r=>r.id))
+            }
+            
             console.log(rejectAll)
           }
           await this.jobPostRes.save(job)
@@ -205,6 +213,7 @@ class ProposalController implements Controller {
       response.status(400).send("Bad Error")
     }
   }
+
 
  
   private declineOffer = async (request: RequestWithUser, response: Response, next: NextFunction) => {
