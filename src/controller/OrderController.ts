@@ -99,6 +99,7 @@ class OrderController implements Controller {
 
   private getFreelanceByOrderV1 = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     const id = request.user.id
+    console.log("get freelance by order ")
     const rs = await this.orderRespotity.createQueryBuilder("o")
       .innerJoinAndSelect("o.proposal", "proposal")
       .leftJoinAndSelect("proposal.jobPost", "jobPost")
@@ -116,6 +117,7 @@ class OrderController implements Controller {
         users[indexof].count += 1 
       }
     })
+    console.log(users)
     response.send(users)
   }
 
