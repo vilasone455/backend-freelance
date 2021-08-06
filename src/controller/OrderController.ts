@@ -7,7 +7,7 @@ import { OrderStat } from '../interfaces/OrderStat';
 import authMiddleware from '../middleware/auth.middleware';
 import { User, UserWithHireCount } from '../entity/User';
 import BadPermissionExpections from '../exceptions/BadPermissionExpection';
-import { getPagination } from '../util/pagination';
+import { getPagination, paginateArray } from '../util/pagination';
 
 import { UserType } from '../interfaces/UserType';
 
@@ -99,6 +99,9 @@ class OrderController implements Controller {
 
   private getFreelanceByOrderV1 = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     const id = request.user.id
+    let pag = getPagination(request)
+    let pageRs = Number(request.query["page"]) || 1
+    
     console.log("get freelance by order ")
     const rs = await this.orderRespotity.createQueryBuilder("o")
       .innerJoinAndSelect("o.proposal", "proposal")
@@ -117,8 +120,9 @@ class OrderController implements Controller {
         users[indexof].count += 1 
       }
     })
+    let userList = paginateArray(users , pag.take ,pageRs )
     console.log(users)
-    response.send(users)
+    response.send({val : userList , count : users.length})
   }
 
   private getFreelanceByOrderV2 = async (request: RequestWithUser, response: Response, next: NextFunction) => {
