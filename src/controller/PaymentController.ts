@@ -39,7 +39,7 @@ class PaymentController implements Controller {
   private initializeRoutes() {
     this.router.get(`${this.path}` ,  this.getAllPayment);
     this.router.get(`${this.path}/accept/:id` , authMiddleware ,  this.acceptPayment);
-    this.router.get(`${this.path}/reject/:id` , authMiddleware, this.acceptPayment);
+    this.router.get(`${this.path}/reject/:id` , authMiddleware, this.rejectPayment);
     this.router.post(`${this.path}` , authMiddleware , this.addPayment);
     this.router.put(`${this.path}/:id` , authMiddleware ,  this.updatePayment);
     this.router.delete(`${this.path}/:id` , authMiddleware ,  this.deletePayment);
@@ -60,7 +60,7 @@ class PaymentController implements Controller {
   }
 
   private async isHavePermission(payment : CreatePaymentDto , user : User) : Promise<PermissionResponse> {
-    const order = await this.orderRespotity.findOne({where:{id:payment.order} , relations : ["proposal" , "proposal.user" , "freelance"]})
+    const order = await this.orderRespotity.findOne({where:{id:payment.order} , relations : ["proposal" , "proposal.user" , "proposal.freelance"]})
     
     if(user.userType !== UserType.User) return {err : new BadPermissionExpections() , order : null}
 
