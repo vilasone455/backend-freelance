@@ -6,5 +6,6 @@ export enum NoficationType{
     YourAccountIsWarn = 5, // Your Account is Warning from admin because {reason}
     FreelanceFinishRequest = 6, // UserX is Send Final Finish Request check out 
     UserAcceptFinishRequest = 7, // UserX is Accept your finish request 
-    UserRejectFinishRequest = 8 // UserX is Reject your finish request
+    UserRejectFinishRequest = 8 ,
+    UserSendPayment = 9
 }

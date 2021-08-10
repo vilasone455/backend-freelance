@@ -15,10 +15,13 @@ export class Payment {
 
     @Column()
     amount: number;
+
+    @Column({default : false})
+    isPayment: boolean;
     
     @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)", onUpdate: "CURRENT_TIMESTAMP(6)" })
     updatedAt: Date;
-
+    
     @ManyToOne(() => Order, o=>o.payments)
     order : Order    
 }

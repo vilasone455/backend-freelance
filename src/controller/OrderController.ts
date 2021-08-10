@@ -10,21 +10,27 @@ import BadPermissionExpections from '../exceptions/BadPermissionExpection';
 import { getPagination, paginateArray } from '../util/pagination';
 
 import { UserType } from '../interfaces/UserType';
+import NoficationService from '../service/nofication-service';
+import { NoficationType } from '../util/nofication-until';
+import { Review } from '../entity/Review';
 
 class OrderController implements Controller {
   public path = '/order';
   public router = Router();
 
   private orderRespotity = getRepository(Order);
+  private nofiService = new NoficationService()
 
   constructor() {
     this.initializeRoutes();
   }
 
   private initializeRoutes() {
+    this.router.post(`${this.path}/end/:id`, authMiddleware , this.endOrder);
     this.router.get(`${this.path}s`, this.getAllOrder);
     this.router.get(`${this.path}/user/all`, authMiddleware, this.getFreelanceByOrderV1);
     this.router.get(`${this.path}/userinfo/:id`, this.getFreelanceByOrderV2);
+    this.router.get(`${this.path}`, authMiddleware, this.getOrderByUser);
     //this.router.get(`${this.path}/user/:id` , this.getFreelanceByOrder);
     this.router.get(`${this.path}`, authMiddleware, this.getOrderByUser);
     this.router.get(`${this.path}/info/:id`, authMiddleware, this.getOrderById);
@@ -91,9 +97,45 @@ class OrderController implements Controller {
 
     
   }
+  
+  private endOrder = async (request: RequestWithUser, response: Response, next: NextFunction) => {
+    let review : Review = request.body
+    let id = request.params.id
+    let user = request.user
+    
+    const order = await this.orderRespotity.findOne({ relations : ["payments" , "proposal" , "proposal.user" , "proposal.freelance"] , 
+    where : {id : Number(id)} } )
+    if(!order) return response.status(404).send("Error Order Not Found")
+    if(order.proposal.user.id !== user.id ) return response.status(400).send("Error This Order not own by you")
+    if(order.orderStatus !== OrderStat.Start) return response.status(400).send("Only Active Order Can do this process")
+
+    let totalPay = 0
+    order.payments.forEach(p=>{
+      if(p.isPayment) totalPay += p.amount
+    })
+
+    console.log("total pay : " + totalPay)
+    if(totalPay < order.proposal.budget) return response.status(400).send("You must payment before end order") 
+
+    const reviewRes = getRepository(Review)
+    order.orderStatus = OrderStat.Finish
+    order.finishAt = new Date()
+    const rs = await this.orderRespotity.save(order)
+    try {
+      review.freelance = order.proposal.freelance
+      review.order = rs
+      await reviewRes.save(review)
+      this.nofiService.addNofication(NoficationType.UserAcceptFinishRequest , order.id , user.id , order.proposal.freelance.id)
+      response.send(rs)
+    } catch (error) {
+      response.status(400).send("Bad Request")
+    }
+   
+    //response.send(rs)
+  }
 
   private getAllOrder = async (request: Request, response: Response, next: NextFunction) => {
-    const rs = await this.orderRespotity.find({ relations: ["proposal", "proposal.user", "proposal.freelance"] })
+    const rs = await this.orderRespotity.find({ relations: ["proposal", "proposal.user", "proposal.freelance"] , order : {id : "DESC"} } )
     response.send(rs)
   }
 
@@ -154,13 +196,14 @@ class OrderController implements Controller {
   private acceptFinishOrder = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     const user = request.user
     const orderId = request.params.orderid
-    const order = await this.orderRespotity.findOne({ where: { id: orderId }, relations: ["proposal", "proposal.user"] })
+    const order = await this.orderRespotity.findOne({ where: { id: orderId }, relations: ["proposal", "proposal.user" , "proposal.freelance" ] })
     if (order) {
       const isUser = order.proposal.user.id === user.id
       if (isUser) {
         order.orderStatus = OrderStat.Finish
         order.finishAt = new Date()
         await this.orderRespotity.save(order)
+        this.nofiService.addNofication(NoficationType.UserAcceptFinishRequest , order.id , user.id , order.proposal.freelance.id)
         response.send("Accept")
       } else {
         return response.status(400).send("Bad Error")
@@ -176,12 +219,15 @@ class OrderController implements Controller {
   private sendFinish = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     const user = request.user
     const orderId = request.params.orderid
-    const order = await this.orderRespotity.findOne({ where: { id: orderId }, relations: ["proposal", "proposal.freelance"] })
+    const order = await this.orderRespotity.findOne({ where: { id: orderId }, relations: ["proposal", "proposal.freelance" , "proposal.user"] })
     if (order) {
       const isFreelance = order.proposal.freelance.id === user.id
       if (isFreelance) {
+
         order.orderStatus = OrderStat.WaitForFinish
+       
         await this.orderRespotity.save(order)
+        this.nofiService.addNofication(NoficationType.FreelanceFinishRequest , order.id , user.id , order.proposal.user.id)
         response.send("Send Success")
       } else {
         return response.status(400).send("Bad Error")
@@ -195,12 +241,13 @@ class OrderController implements Controller {
   private declineFinish = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     const user = request.user
     const orderId = request.params.orderid
-    const order = await this.orderRespotity.findOne({ where: { id: orderId }, relations: ["proposal", "proposal.user"] })
+    const order = await this.orderRespotity.findOne({ where: { id: orderId }, relations: ["proposal", "proposal.user" , "proposal.freelance"] })
     if (order) {
       const isUser = order.proposal.user.id === user.id
       if (isUser && order.orderStatus === OrderStat.WaitForFinish) {
         order.orderStatus = OrderStat.Start
         await this.orderRespotity.save(order)
+        this.nofiService.addNofication(NoficationType.UserRejectFinishRequest , order.id , user.id , order.proposal.freelance.id)
         response.send("Decline Finish")
       } else {
         return response.status(400).send("Bad Error")

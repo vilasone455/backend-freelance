@@ -15,6 +15,14 @@ import { Payment } from '../entity/Payment';
 import { Order } from '../entity/Order';
 import { User } from '../entity/User';
 import BadRequestExpection from '../exceptions/BadRequestExpection';
+import NoficationService from '../service/nofication-service';
+import { NoficationType } from '../util/nofication-until';
+import { CreatePaymentDto } from '../dto/CreatePayment.dto';
+
+interface PermissionResponse{
+  err : BadPermissionExpections,
+  order : Order
+}
 
 class PaymentController implements Controller {
   public path = '/payment';
@@ -22,7 +30,7 @@ class PaymentController implements Controller {
 
   private paymentRespotity = getRepository(Payment);
   private orderRespotity = getRepository(Order);
-
+  private nofiService = new NoficationService()
 
   constructor() {
     this.initializeRoutes();
@@ -30,34 +38,92 @@ class PaymentController implements Controller {
 
   private initializeRoutes() {
     this.router.get(`${this.path}` ,  this.getAllPayment);
+    this.router.get(`${this.path}/accept/:id` , authMiddleware ,  this.acceptPayment);
+    this.router.get(`${this.path}/reject/:id` , authMiddleware, this.acceptPayment);
     this.router.post(`${this.path}` , authMiddleware , this.addPayment);
     this.router.put(`${this.path}/:id` , authMiddleware ,  this.updatePayment);
     this.router.delete(`${this.path}/:id` , authMiddleware ,  this.deletePayment);
   }
 
-  private async isHavePermission(payment : Payment , user : User)  {
-    const order = await this.orderRespotity.findOne({where:{id:payment.order} , relations : ["proposal" , "proposal.user"]})
+  private async isFreelancePermission(payment : Payment , user : User)  {
+    const order = await this.orderRespotity.findOne({where:{id:payment.order.id} , relations : ["proposal" , "proposal.freelance"]})
     
-    if(user.userType !== UserType.User) return new BadPermissionExpections()
+    if(user.userType !== UserType.Freelance) return new BadPermissionExpections()
 
     if(!order) return new BadPermissionExpections()
 
-    if(order.proposal.user.id != user.id){
+    if(order.proposal.freelance.id != user.id){
         return new BadPermissionExpections()
     }
 
     return null
   }
 
-  private addPayment = async (request: RequestWithUser, response: Response, next: NextFunction) => {
-    const user =request.user
-    const payment : Payment = request.body
+  private async isHavePermission(payment : CreatePaymentDto , user : User) : Promise<PermissionResponse> {
+    const order = await this.orderRespotity.findOne({where:{id:payment.order} , relations : ["proposal" , "proposal.user" , "freelance"]})
+    
+    if(user.userType !== UserType.User) return {err : new BadPermissionExpections() , order : null}
 
-    const err = await this.isHavePermission(payment , user)
+    if(!order) return {err : new BadPermissionExpections() , order : null}
+
+    if(order.proposal.user.id != user.id){
+      return {err : new BadPermissionExpections() , order : null}
+    }
+
+    return {err : null , order : order}
+  }
+
+  private acceptPayment = async (request: RequestWithUser, response: Response, next: NextFunction) => {
+    let id = request.params.id
+    const user =request.user
+    const payment = await this.paymentRespotity.findOne({where : {id : id} , relations : ["order"]})
+
+    const err = await this.isFreelancePermission(payment , user)
     if(err !== null) return next(err)
 
     try {
-        const rs = await this.paymentRespotity.save(payment)
+      const rs = await this.paymentRespotity 
+      .createQueryBuilder()
+      .update(Payment)
+      .set({     isPayment : true })
+      .where("id = :id", { id: id })
+      .execute();
+      response.send(rs)
+    } catch (error) {
+        response.status(400).send("Bad Request")
+    }
+    
+  }
+
+  private rejectPayment = async (request: RequestWithUser, response: Response, next: NextFunction) => {
+    const user =request.user
+    let id = request.params.id
+    const payment = await this.paymentRespotity.findOne({where : {id : id} , relations : ["order"]})
+    
+
+    const err = await this.isFreelancePermission(payment , user)
+    if(err !== null) return next(err)
+
+    try {
+        const rs = await this.paymentRespotity.delete(request.params.id)
+        response.send(rs)
+    } catch (error) {
+        response.status(400).send("Bad Request")
+    }
+    
+  }
+
+  private addPayment = async (request: RequestWithUser, response: Response, next: NextFunction) => {
+    const user =request.user
+    const payment : CreatePaymentDto = request.body
+
+    const permission = await this.isHavePermission(payment , user)
+    if(permission.err !== null) return next(permission.err)
+
+    try {
+        this.nofiService.addNofication(NoficationType.UserSendPayment , permission.order.id , user.id , 
+        permission.order.proposal.freelance.id )
+        const rs = await this.paymentRespotity.save(payment as any)
         response.send(rs)
     } catch (error) {
         response.status(400).send("Bad Request")
@@ -73,16 +139,16 @@ class PaymentController implements Controller {
 
   private updatePayment = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     const user = request.user
-    let payment : Payment = request.body
+    let payment : CreatePaymentDto = request.body
     console.log(request.params.id)
     if(Number(request.params.id) !== payment.id){
       return next(new BadPermissionExpections())
     }
-    const err = await this.isHavePermission(payment , user)
-    if(err !== null) return next(err)
+    const permission = await this.isHavePermission(payment , user)
+    if(permission.err !== null) return next(permission.err)
 
     try {
-        const rs = await this.paymentRespotity.save(payment)
+        const rs = await this.paymentRespotity.save(payment as any)
         response.send(rs)
     } catch (error) {
         response.status(400).send("Bad Request")
