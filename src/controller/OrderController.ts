@@ -79,6 +79,7 @@ class OrderController implements Controller {
       .leftJoinAndSelect("workFiles.owner", "owner")
       .leftJoinAndSelect("o.review", "r")
       .innerJoinAndSelect("o.proposal", "proposal")
+      .leftJoinAndSelect("proposal.jobPost", "jobPost")
     
       if(request.user.userType === UserType.Freelance){
         chainQuery.innerJoinAndSelect("proposal.user" , "user")

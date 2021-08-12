@@ -11,6 +11,9 @@ import { Report } from '../entity/Report';
 import { User } from '../entity/User';
 import { JobPost } from '../entity/JobPost';
 import { UserType } from '../interfaces/UserType';
+import { Payment } from '../entity/Payment';
+import { Order } from '../entity/Order';
+import { OrderStat } from '../interfaces/OrderStat';
 
 interface UserReport{
   id:number
@@ -50,6 +53,8 @@ class ReportController implements Controller {
 
   private initializeRoutes() {
     this.router.get(`${this.path}/user/traffic` ,  this.getTrifficUser);
+    this.router.get(`${this.path}/freelance` , authMiddleware , this.getFreelanceReport);
+    this.router.get(`${this.path}/homefreelance` , authMiddleware , this.getFreelanceOrderReport);
     this.router.get(`${this.path}/home` ,  this.getHomeReport);
     this.router.get(`${this.path}/post` ,  this.getAllReportByPost);
     this.router.get(`${this.path}/user` ,  this.getAllReportByUser);
@@ -104,6 +109,83 @@ class ReportController implements Controller {
         .getRawMany()
      
         response.send(user)
+    } catch (error) {
+      console.log(error)
+        response.status(400).send("Bad Request")
+    }
+    
+  }
+
+  private getFreelanceOrderReport = async (request: RequestWithUser, response: Response, next: NextFunction) => {
+    const user = request.user
+
+    const dateStart = request.query["start"].toString()
+    const dateEnd = request.query["end"].toString()
+
+    const startDate = new Date(dateStart)
+    const endDate = new Date(dateEnd)
+    startDate.setHours(0,0,0,0);
+    endDate.setHours(0,0,0,0);
+
+    try {
+        const orderRes = getRepository(Order)
+        const rs = await orderRes.createQueryBuilder("o")
+        .innerJoin("o.proposal" , "proposal")
+        .select([
+          "o.id",
+          "proposal.id",
+          "o.orderStatus"
+        ])
+        .where("proposal.freelanceId = :fId" , {fId : user.id})
+        .andWhere("o.createdAt >= :startDate AND o.createdAt <= :endDate" , {startDate : startDate , endDate : endDate} )
+        
+        .getRawMany()
+
+        const total = rs.length
+        const totalIncomplete = rs.filter(r=>r.o_orderStatus == OrderStat.Start).length
+        const totalComplete = rs.filter(r=>r.o_orderStatus == OrderStat.Finish).length
+      
+
+        response.send({
+          total ,
+          totalIncomplete,
+          totalComplete
+        })
+    } catch (error) {
+      console.log(error)
+        response.status(400).send("Bad Request")
+    }
+    
+  }
+
+
+  private getFreelanceReport = async (request: RequestWithUser, response: Response, next: NextFunction) => {
+    const user = request.user
+    const groupType = request.query["type"]
+    const dateStart = request.query["start"].toString()
+    const dateEnd = request.query["end"].toString()
+
+    const startDate = new Date(dateStart)
+    const endDate = new Date(dateEnd)
+    startDate.setHours(0,0,0,0);
+    endDate.setHours(0,0,0,0);
+
+    try {
+
+        const paymentRes = getRepository(Payment)
+        const rs = await paymentRes.createQueryBuilder("p")
+        .leftJoin("p.order" , 'o')
+        .leftJoin("o.proposal" , "proposal")
+        .select([
+          `date_part('${groupType}', o.createdAt) as d`,
+          "SUM(p.amount) as amounts"
+        ])
+        .groupBy("d")
+        .where("proposal.freelanceId = :fId" , {fId : user.id})
+        .andWhere("o.createdAt >= :startDate AND o.createdAt <= :endDate" , {startDate : startDate , endDate : endDate} )
+        .getRawMany()
+
+        response.send(rs)
     } catch (error) {
       console.log(error)
         response.status(400).send("Bad Request")
