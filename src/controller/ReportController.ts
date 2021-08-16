@@ -195,8 +195,8 @@ class ReportController implements Controller {
 
 
   private getHomeReport = async (request: RequestWithUser, response: Response, next: NextFunction) => {
-    const user = request.user
-    const date = new Date()
+    const dateStart = request.query["date"].toString()
+    const date = new Date(dateStart)
     date.setHours(0,0,0,0);
 
     try {

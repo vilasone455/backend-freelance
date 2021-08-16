@@ -22,12 +22,14 @@ function roleMiddleWare<T>(roles : UserType[] = [] , isAdd = true): RequestHandl
                 const user = await userRepository.findOne({ id: userTokenId });
                 console.log("get user")
                 if (user) {
+                    console.log("have user")
                     req.user = user;
                     if(roles.length === 0) next()
                     console.log(user.userType)
                     console.log(roles)
                     const isVaildRole = roles.includes(user.userType)
                     if(isVaildRole){
+                        console.log("include")
                         next();
                     }else{
                         next(new BadPermissionExpections())

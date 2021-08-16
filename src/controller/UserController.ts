@@ -223,12 +223,13 @@ class UserController implements Controller {
 
     const banRes = getRepository(BanUser)
     const ban : BanUser = request.body
-    const banuser = await this.userRespotity.findOne(ban.user.id)
+    const banuser = await this.userRespotity.findOne(ban.user)
     try {
 
-      console.log(banuser)
       if(banuser){
         if(banuser.userType === UserType.Admin && user.userType === UserType.Admin) return next(new BadPermissionExpections())
+        console.log(banuser)
+        console.log("pass")
         banuser.isBan = true
         ban.admin = user
         await banRes.save(ban)
@@ -253,7 +254,7 @@ class UserController implements Controller {
 
     const unbanRes = getRepository(UnBanUser)
     const unBanData : UnBanUser = request.body
-    const banUser = await this.userRespotity.findOne(unBanData.user.id)
+    const banUser = await this.userRespotity.findOne(unBanData.user)
     if(banUser){
       if(banUser.userType === UserType.Admin && user.userType === UserType.Admin) return next(new BadPermissionExpections())
       if(banUser.isBan){
@@ -281,7 +282,7 @@ class UserController implements Controller {
 
     const warnRes = getRepository(WarnUser)
     const warn : WarnUser = request.body
-    const warnuser = await this.userRespotity.findOne(warn.user.id)
+    const warnuser = await this.userRespotity.findOne(warn.user)
     try {
 
       if(warnuser){
@@ -363,8 +364,6 @@ class UserController implements Controller {
     let category = request.query["category"]
     let subCategory = request.query["subCategory"]
     let search = request.query["search"]
-
-
     let age = request.query["age"]
 
     let price = request.query["price"]
@@ -455,14 +454,21 @@ class UserController implements Controller {
 
 
   private getAllUser = async (request: Request, response: Response, next: NextFunction) => {
-    
+    const userType = request.query["usertype"]
+    const uname = request.query["search"]
+
     let pag = getPagination(request)
-    const [data , count] = await this.userRespotity
+    const chainQuery =  this.userRespotity
       .createQueryBuilder('user')
       .orderBy('user.id', "DESC")
-      .skip(pag.skip)
-      .take(pag.take)
-      .getManyAndCount()
+      .where("(user.userType != 3 OR user.userType != 4)")
+
+    if(userType) chainQuery.andWhere("user.userType = :uType" , {uType : userType.toString()})
+    if(uname) chainQuery.andWhere("user.userName like :uName" , {uName : uname.toString()})
+    
+    const [data , count] = await chainQuery.skip(pag.skip)
+    .take(pag.take)
+    .getManyAndCount()
 
       response.send({count : count,val : data})
   }
