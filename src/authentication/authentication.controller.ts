@@ -16,7 +16,7 @@ import LogInDto from './logIn.dto';
 import { getRepository } from 'typeorm';
 import BadPermissionExpections from '../exceptions/BadPermissionExpection';
 import { Address } from '../entity/Address';
-
+import BanException from '../exceptions/BanExpection';
 
 class AuthenticationController implements Controller {
   public path = '/auth';
@@ -104,7 +104,9 @@ class AuthenticationController implements Controller {
       const isPasswordMatching = await bcrypt.compare(logInData.userPassword, user.userPassword)
       console.log(isPasswordMatching)
       if (isPasswordMatching) {
+        if(user.isBan) next(new BanException())
         const tokenData = this.createToken(user);
+        response.setHeader('Set-Cookie', [this.createCookie(tokenData)]);
         response.send({ ...user, tokenData });
       } else {
         next(new WrongCredentialsException());
@@ -118,6 +120,42 @@ class AuthenticationController implements Controller {
     response.setHeader('Set-Cookie', ['Authorization=;Max-age=0']);
     response.send(200);
   }
+
+  /*
+  private logOut = (request: Request, response: Response) => {
+      
+    const { userId, token } = request.params;
+
+    redisClient.get(userId, (error, data) => {
+    if (error) {
+      response.send({ error });
+    }
+
+    if (data !== null) {
+      const parsedData = JSON.parse(data);
+      parsedData[userId].push(token);
+      redisClient.setex(userId, 3600, JSON.stringify(parsedData));
+      return response.send({
+        status: 'success',
+        message: 'Logout successful',
+      });
+    }
+
+// 6. if the user isn't on the blacklist yet, add the user the token 
+// and on subsequent requests to the logout route the user 
+// will be found and the token will be appended to the already existing list.
+    const blacklistData = {
+      [userId]: [token],
+    };
+    redisClient.setex(userId, 3600, JSON.stringify(blacklistData));
+    return response.send({
+        status: 'success',
+        message: 'Logout successful',
+    });
+  
+  })}
+  */
+  
 
   private createCookie(tokenData: TokenData) {
     return `Authorization=${tokenData.token}; HttpOnly; Max-Age=${tokenData.expiresIn}`;

@@ -26,6 +26,7 @@ import { Skill } from '../entity/Skill';
 import { Portfilio } from '../entity/Portfilio';
 import { ViewStat } from '../interfaces/ViewStat';
 import * as bcrypt from 'bcrypt';
+import userMiddleware from '../middleware/user.middleware';
 
 class UserController implements Controller {
   public path = '/users';
@@ -43,9 +44,9 @@ class UserController implements Controller {
     this.router.get(`/ajustcat`, this.ajustCategory);
     this.router.get(`/ajustuser`, this.ajustProfile);
     this.router.get(`/usertoken`, this.getUserByToken);
-    this.router.get(`${this.path}/:id`, this.getUserById);
-    this.router.get(`${this.path}`, this.getAllUser);
-    this.router.get(`/freelances`, this.getAllFreelance);
+    this.router.get(`${this.path}/:id`, userMiddleware , this.getUserById);
+    this.router.get(`${this.path}`, userMiddleware  , this.getAllUser);
+    this.router.get(`/freelances`, userMiddleware , this.getAllFreelance);
     this.router.get(`${this.path}all`, this.allUser);
     this.router.put(`${this.path}image/:id`, authMiddleware ,this.updateImage);
     this.router.post(`/skill` , this.addSkill);
@@ -307,7 +308,16 @@ class UserController implements Controller {
     const warnRes = getRepository(WarnUser)
     let pag = getPagination(request)
     try {
-      const [data,count] = await warnRes.findAndCount({relations:["user" , "admin"] , order:{id:"DESC"} , skip : pag.skip , take : pag.take})
+      let emply : WarnUser[] = []
+      let [data,count] = [emply , 0]
+      if(user.userType === 3){
+        [data,count] = await warnRes.findAndCount({relations:["user" , "admin"] , order:{id:"DESC"} , skip : pag.skip , take : pag.take , where : {
+          admin : {id : user.id}
+        } })
+      }else if(user.userType === 4){
+        [data,count] = await warnRes.findAndCount({relations:["user" , "admin"] , order:{id:"DESC"} , skip : pag.skip , take : pag.take })
+      }
+     
       response.send({count : count,val : data})
     } catch (error) {
       response.status(400).send("Bad Request")
@@ -321,8 +331,16 @@ class UserController implements Controller {
     const banRes = getRepository(BanUser)
     let pag = getPagination(request)
     try {
-      const [data,count] = await banRes.findAndCount({relations:["user" , "admin"] , order:{id:"DESC"} , skip : pag.skip , take : pag.take })
-
+      let emply : BanUser[] = []
+      let [data,count] = [emply , 0]
+      if(user.userType === 3){
+        [data,count] = await banRes.findAndCount({relations:["user" , "admin"] , order:{id:"DESC"} , skip : pag.skip , take : pag.take , where : {
+          admin : {id : user.id}
+        } })
+      }else if(user.userType === 4){
+        [data,count] = await banRes.findAndCount({relations:["user" , "admin"] , order:{id:"DESC"} , skip : pag.skip , take : pag.take })
+      }
+      
       response.send({count : count,val : data})
     } catch (error) {
       response.status(400).send("Bad Request")
@@ -336,8 +354,16 @@ class UserController implements Controller {
     const unbanRes = getRepository(UnBanUser)
     let pag = getPagination(request)
     try {
-      const [data,count] = await unbanRes.findAndCount({relations:["user" , "admin"] , order:{id:"DESC"} , skip : pag.skip , take : pag.take })
-
+      let emply : UnBanUser[] = []
+      let [data,count] = [emply , 0]
+      if(user.userType === 3){
+        [data,count] = await unbanRes.findAndCount({relations:["user" , "admin"] , order:{id:"DESC"} , skip : pag.skip , take : pag.take , where : {
+          admin : {id : user.id}
+        } })
+      }else if(user.userType === 4){
+        [data,count] = await unbanRes.findAndCount({relations:["user" , "admin"] , order:{id:"DESC"} , skip : pag.skip , take : pag.take })
+      }
+    
       response.send({count : count,val : data})
     } catch (error) {
       response.status(400).send("Bad Request")

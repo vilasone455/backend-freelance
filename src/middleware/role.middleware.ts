@@ -9,6 +9,7 @@ import AuthenticationTokenMissingException from "../exceptions/AuthenticationTok
 
 import BadPermissionExpections from "../exceptions/BadPermissionExpection";
 import { UserType } from "../interfaces/UserType";
+import BanException from "../exceptions/BanExpection";
 
 function roleMiddleWare<T>(roles : UserType[] = [] , isAdd = true): RequestHandler {
     return async (req : RequestWithUser, res, next) => {
@@ -29,8 +30,13 @@ function roleMiddleWare<T>(roles : UserType[] = [] , isAdd = true): RequestHandl
                     console.log(roles)
                     const isVaildRole = roles.includes(user.userType)
                     if(isVaildRole){
+                        if(user.isBan) {
+                            next(new BanException())
+                        }else{
+                            next();
+                        }
                         console.log("include")
-                        next();
+                
                     }else{
                         next(new BadPermissionExpections())
                     }

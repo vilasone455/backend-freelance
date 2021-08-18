@@ -13,6 +13,9 @@ export class Education {
     @Column()
     schoolName: string;
 
+    @Column({default : ""})
+    faculty: string;
+
     @Column()
     degree: string;
 

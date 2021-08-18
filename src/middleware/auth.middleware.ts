@@ -7,7 +7,8 @@ import RequestWithUser from '../interfaces/requestWithUser.interface';
 import {User} from '../entity/User';
 import { getRepository } from 'typeorm';
 import BadPermissionExpections from '../exceptions/BadPermissionExpection';
-import HttpException from 'src/exceptions/HttpException';
+import HttpException from '../exceptions/HttpException';
+import BanException from '../exceptions/BanExpection';
 
 
 export interface DataWithError<T> {
@@ -16,6 +17,7 @@ export interface DataWithError<T> {
 }
 
 export const jwtToUser = async (rq : Request) : Promise<DataWithError<User>> => {
+
   const auth = rq.headers["authorization"]
   if (auth) {
     const secret = process.env.SECRET_KEY;
@@ -37,7 +39,7 @@ export const jwtToUser = async (rq : Request) : Promise<DataWithError<User>> => 
 }
 
 async function authMiddleware(request: RequestWithUser, response: Response, next: NextFunction ) {
-
+  console.log("cookie : "+request.cookies["authorization"])
   const auth = request.headers["authorization"]
   if (auth) {
     const secret = process.env.SECRET_KEY;
@@ -51,7 +53,7 @@ async function authMiddleware(request: RequestWithUser, response: Response, next
       if (user) {
         if(user.isBan){
           console.log("ban")
-          next(new BadPermissionExpections())
+          next(new BanException())
         }else{
           request.user = user;
           next();

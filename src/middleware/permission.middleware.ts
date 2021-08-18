@@ -6,8 +6,8 @@ import DataStoredInToken from '../interfaces/dataStoredInToken';
 import RequestWithUser from '../interfaces/requestWithUser.interface';
 import { EntityTarget, getRepository } from 'typeorm';
 import BadPermissionExpections from '../exceptions/BadPermissionExpection';
-import RequestWithEntity from 'src/interfaces/requestWithEntity.interface';
-
+import RequestWithEntity from '../interfaces/requestWithEntity.interface';
+import BanException from '../exceptions/BanExpection';
 
 
 function validationMiddleware<T>(entity : EntityTarget<T> , fieldName : string = "user"): RequestHandler {
@@ -25,7 +25,7 @@ function validationMiddleware<T>(entity : EntityTarget<T> , fieldName : string =
                 if(rs){
                     req.user = rs["user"]
                     if(req.user.isBan){
-                        next(new BadPermissionExpections()) 
+                        next(new BanException()) 
                     }else{
                         next()
                     }
