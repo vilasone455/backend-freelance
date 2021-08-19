@@ -20,8 +20,8 @@ import { JobSkill } from '../entity/JobSkill';
 import { randomJobSkillSet } from './Util';
 import { ProposalStatus } from '../interfaces/ProposalStatus';
 import { Proposal } from '../entity/Proposal';
-
 import { onesignal } from '../util/onesignal';
+import userMiddleware from '../middleware/user.middleware';
 
 class JobPostController implements Controller {
   public path = '/jobpost';
@@ -39,7 +39,7 @@ class JobPostController implements Controller {
     this.router.get(`/ajustjob`, this.ajustJob);
     this.router.get(`${this.path}/:id`, this.getJobById);
     this.router.get(`${this.path}/user/all`, authMiddleware, this.getJobByUser);
-    this.router.get(`${this.path}`, this.getAllJob);
+    this.router.get(`${this.path}`, userMiddleware , this.getAllJob);
     this.router.get(`${this.path}/close/:id`, authMiddleware, this.closeJob);
     this.router.post(`${this.path}`, roleMiddleWare([UserType.User]), this.postJob);
     this.router.put(`${this.path}/:id`, permission(JobPost), this.updatePost);
@@ -215,8 +215,6 @@ class JobPostController implements Controller {
     } catch (error) {
       response.status(400).send("Bad Request")
     }
-
-
   }
 
   private deletePost = async (request: Request, response: Response, next: NextFunction) => {
