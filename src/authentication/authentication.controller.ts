@@ -104,10 +104,14 @@ class AuthenticationController implements Controller {
       const isPasswordMatching = await bcrypt.compare(logInData.userPassword, user.userPassword)
       console.log(isPasswordMatching)
       if (isPasswordMatching) {
-        if(user.isBan) next(new BanException())
-        const tokenData = this.createToken(user);
-        response.setHeader('Set-Cookie', [this.createCookie(tokenData)]);
-        response.send({ ...user, tokenData });
+        if(user.isBan) {
+          next(new BanException())
+        }else{
+          const tokenData = this.createToken(user);
+          response.setHeader('Set-Cookie', [this.createCookie(tokenData)]);
+          response.send({ ...user, tokenData });
+        }
+        
       } else {
         next(new WrongCredentialsException());
       }
