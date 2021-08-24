@@ -13,6 +13,7 @@ import { UserType } from '../interfaces/UserType';
 import NoficationService from '../service/nofication-service';
 import { NoficationType } from '../util/nofication-until';
 import { Review } from '../entity/Review';
+import { OrderProject } from 'src/interfaces/OrderProject';
 
 class OrderController implements Controller {
   public path = '/order';
@@ -28,6 +29,7 @@ class OrderController implements Controller {
   private initializeRoutes() {
     this.router.post(`${this.path}/end/:id`, authMiddleware , this.endOrder);
     this.router.get(`${this.path}s`, this.getAllOrder);
+    this.router.get(`${this.path}/chat/all`, authMiddleware, this.getChatOrderByUser);
     this.router.get(`${this.path}/user/all`, authMiddleware, this.getFreelanceByOrderV1);
     this.router.get(`${this.path}/userinfo/:id`, this.getFreelanceByOrderV2);
     this.router.get(`${this.path}`, authMiddleware, this.getOrderByUser);
@@ -37,6 +39,37 @@ class OrderController implements Controller {
     this.router.get(`${this.path}/sendfinish/:orderid`, authMiddleware, this.sendFinish);
     this.router.get(`${this.path}/canclefinish/:orderid`, authMiddleware, this.declineFinish);
     this.router.get(`${this.path}/finish/:orderid`, authMiddleware, this.acceptFinishOrder);
+  }
+
+  private getChatOrderByUser = async (request: RequestWithUser, response: Response, next: NextFunction) => {
+    const id = request.user.id
+
+    const rs  =  await this.orderRespotity.createQueryBuilder("o")
+      .orderBy('o.id', "DESC")
+      .innerJoinAndSelect("o.proposal", "proposal")
+      .leftJoinAndSelect("proposal.jobPost", "jobPost")
+      .innerJoinAndSelect("proposal.user", "user")
+      .innerJoinAndSelect("proposal.freelance", "freelance")
+      .where("(proposal.userId = :id OR proposal.freelanceId=:id)", { id })
+      .getMany()
+    let u = request.user
+    const vals : OrderProject[] = []
+    rs.forEach(r=>{
+      let p = r.proposal
+      let title = (p.jobPost) ? p.jobPost.title : p.title
+      
+      let user = (u.id === r.proposal.user.id) ? r.proposal.freelance : r.proposal.user 
+      let add : OrderProject = {
+        id : r.id,
+        date : r.createdAt,
+        user ,
+        title 
+      }
+      vals.push(add)
+      
+    })
+
+    response.send({val : vals , user : request.user})
   }
 
   private getOrderByUser = async (request: RequestWithUser, response: Response, next: NextFunction) => {

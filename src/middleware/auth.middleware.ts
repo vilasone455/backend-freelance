@@ -39,7 +39,7 @@ export const jwtToUser = async (rq : Request) : Promise<DataWithError<User>> => 
 }
 
 async function authMiddleware(request: RequestWithUser, response: Response, next: NextFunction ) {
-  console.log("cookie : "+request.cookies["authorization"])
+ // console.log("cookie : "+request.cookies["authorization"])
   const auth = request.headers["authorization"]
   if (auth) {
     const secret = process.env.SECRET_KEY;

@@ -43,6 +43,7 @@ class UserController implements Controller {
     this.router.get(`/portfilio/:id`, this.getPortfilio);
     this.router.get(`/ajustcat`, this.ajustCategory);
     this.router.get(`/ajustuser`, this.ajustProfile);
+    this.router.get(`/getbans`, this.allBan);
     this.router.get(`/usertoken`, this.getUserByToken);
     this.router.get(`${this.path}/:id`, userMiddleware , this.getUserById);
     this.router.get(`${this.path}`, userMiddleware  , this.getAllUser);
@@ -83,6 +84,11 @@ class UserController implements Controller {
 
   }
 
+  private allBan = async (request: Request, response: Response, next: NextFunction) => {
+    const banRes = getRepository(BanUser)
+    const rs = await banRes.find({order : {id : "DESC"} , relations : ["admin" , "user"]})
+    response.send(rs)
+  }
 
   private allUser = async (request: Request, response: Response, next: NextFunction) => {
     const users = await this.userRespotity.find();
@@ -198,6 +204,11 @@ class UserController implements Controller {
     let pag = getPagination(request)
     const [val , count] = await this.userRespotity.findAndCount({where : {userType : 3} ,skip : pag.skip , take : pag.take , order:{id:"DESC"}} )
     response.send({val , count})
+  }
+
+  private getAllFriend = async (request: Request, response: Response, next: NextFunction) => {
+    const users = await this.userRespotity.find({ relations: ["jobPosts"] });
+    response.send(users)
   }
 
   private getAllJob = async (request: Request, response: Response, next: NextFunction) => {
