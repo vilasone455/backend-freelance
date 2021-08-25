@@ -185,7 +185,7 @@ class JobPostController implements Controller {
       if (rs.length === 1) {
         chainQuery.andWhere("j.budgetStart >= :start", { start: rs[0] })
       } else if (rs.length === 2) {
-        chainQuery.andWhere("j.budgetStart >= :start AND j.budgetEnd <= :end", { start: rs[0], end: rs[1] })
+        chainQuery.andWhere("j.budgetEnd >= :start AND j.budgetEnd <= :end", { start: rs[0], end: rs[1] })
       }
     }
 

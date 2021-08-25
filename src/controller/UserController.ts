@@ -39,7 +39,7 @@ class UserController implements Controller {
   }
 
   private initializeRoutes() {
-    this.router.get(`/ajustskill`, this.ajustSkill);
+    this.router.get(`/ajustprice`, this.ajustPrice);
     this.router.get(`/portfilio/:id`, this.getPortfilio);
     this.router.get(`/ajustcat`, this.ajustCategory);
     this.router.get(`/ajustuser`, this.ajustProfile);
@@ -93,6 +93,18 @@ class UserController implements Controller {
   private allUser = async (request: Request, response: Response, next: NextFunction) => {
     const users = await this.userRespotity.find();
     response.send(users)
+  }
+
+  private ajustPrice = async (request: Request, response: Response, next: NextFunction) => {
+    const profileRes = getRepository(Profile)
+    let ps = await profileRes.find({where:{
+      endPrice : 0
+    }})
+    ps.forEach(p=>{
+      p.endPrice = p.startPrice
+    })
+    const rs = await profileRes.save(ps)
+    response.send(rs)
   }
 
 
@@ -432,10 +444,11 @@ class UserController implements Controller {
 
       if(price){
         let rs = price.toString().split("-")
+        console.log("filter price")
         if(rs.length === 1){
           chainQuery.andWhere("profile.startPrice >= :start" , {start : rs[0] })
         }else if(rs.length === 2){
-          chainQuery.andWhere("profile.startPrice >= :start AND profile.endPrice <= :end" , {start : rs[0] , end : rs[1] })
+          chainQuery.andWhere("profile.endPrice >= :start AND profile.endPrice <= :end" , {start : rs[0] , end : rs[1] })
         }
       }
 
@@ -470,14 +483,19 @@ class UserController implements Controller {
       .getManyAndCount()
 
       const userWithReviews : UserWithReview[] = []
-
+    
       data.forEach(d => {
+        console.log(d.reviews)
         let reviewCount = d.reviews.length
         let score = d.reviews.reduce((a, b) => {
+       
           let average =  (b.productScore + b.chatScore + b.serviceScore + b.priceScore ) / 4
+          //console.log(average)
+          let s = average <= 0 ? 0 : average
           //console.log(`cal of ${d.userEmail} : ${b.productScore} + ${b.chatScore} + ${b.serviceScore} + ${b.priceScore} / 4 = ${average}`)
-          return average <= 0 ? 0 : average
+          return a+ s 
         } , 0.0)
+       // console.log("total score : " + score)
         let averageTotal = score / reviewCount
         averageTotal = averageTotal <= 0 ? 0 : averageTotal
         d.reviews = []
