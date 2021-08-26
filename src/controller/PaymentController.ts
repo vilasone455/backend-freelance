@@ -116,7 +116,7 @@ class PaymentController implements Controller {
   private addPayment = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     const user =request.user
     const payment : CreatePaymentDto = request.body
-
+    //delete payment.id
     const permission = await this.isHavePermission(payment , user)
     if(permission.err !== null) return next(permission.err)
 

@@ -33,20 +33,20 @@ class CategoryController implements Controller {
   }
 
   private addSubCategory = async (request: RequestWithUser, response: Response, next: NextFunction) => {
-    if(request.user.userType !== 3) next(new BadPermissionExpections())
+    if(request.user.userType !== 3 && request.user.userType !== 4) next(new BadPermissionExpections())
     const subcategory : SubCategory = request.body
     const subcats = await this.subCatRespotiy.save(subcategory)
     response.send(subcats)
   }
 
   private deleteSubCategory = async (request: RequestWithUser, response: Response, next: NextFunction) => {
-    if(request.user.userType !== 3) next(new BadPermissionExpections())
+    if(request.user.userType !== 3 && request.user.userType !== 4) next(new BadPermissionExpections())
     const rs = await this.subCatRespotiy.delete(request.params.id)
     response.send(rs)
   }
 
   private editSubCategory = async (request: RequestWithUser, response: Response, next: NextFunction) => {
-    if(request.user.userType !== 3) next(new BadPermissionExpections())
+    if(request.user.userType !== 3 && request.user.userType !== 4) next(new BadPermissionExpections())
     const category : SubCategory = request.body
     const id = request.params.id
     const cat = await this.subCatRespotiy.findOne(id)
@@ -68,7 +68,7 @@ class CategoryController implements Controller {
   }
 
   private addCategory = async (request: RequestWithUser, response: Response, next: NextFunction) => {
-    if(request.user.userType !== 3) next(new BadPermissionExpections())
+    if(request.user.userType !== 3 && request.user.userType !== 4) next(new BadPermissionExpections())
     const category : Category = request.body
     const rs = await this.categoryRespotity.save(category)
     response.send(rs)
@@ -80,7 +80,7 @@ class CategoryController implements Controller {
   }
 
   private updateCategory = async (request: RequestWithUser, response: Response, next: NextFunction) => {
-    if(request.user.userType !== 3) next(new BadPermissionExpections())
+    if(request.user.userType !== 3 && request.user.userType !== 4) next(new BadPermissionExpections())
     const category : Category = request.body
     await this.categoryRespotity.save(category)
     response.send(category)
@@ -88,7 +88,7 @@ class CategoryController implements Controller {
   }
 
   private deleteCategory = async (request: RequestWithUser, response: Response, next: NextFunction) => {
-    if(request.user.userType !== 3) next(new BadPermissionExpections())
+    if(request.user.userType !== 3 && request.user.userType !== 4) next(new BadPermissionExpections())
     const id = request.params.id
     console.log(id)
     const rs = await this.categoryRespotity.delete(id)

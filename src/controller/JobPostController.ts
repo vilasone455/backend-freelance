@@ -181,6 +181,7 @@ class JobPostController implements Controller {
     }
 
     if (price) {
+      console.log("job price filter")
       let rs = price.toString().split("-")
       if (rs.length === 1) {
         chainQuery.andWhere("j.budgetStart >= :start", { start: rs[0] })

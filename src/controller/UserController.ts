@@ -279,6 +279,7 @@ class UserController implements Controller {
     const unbanRes = getRepository(UnBanUser)
     const unBanData : UnBanUser = request.body
     const banUser = await this.userRespotity.findOne(unBanData.user)
+    console.log(banUser)
     if(banUser){
       if(banUser.userType === UserType.Admin && user.userType === UserType.Admin) return next(new BadPermissionExpections())
       if(banUser.isBan){
@@ -293,6 +294,7 @@ class UserController implements Controller {
           response.status(400).send("Bad Request")
         }
       }else{
+        console.log("error unban user")
         return next(new BadPermissionExpections())
       }
     }else{
