@@ -329,7 +329,7 @@ class UserController implements Controller {
 
   private getWarnUser = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     const user = request.user
-    if(user.userType !== 3) return next(new BadPermissionExpections())
+    if(user.userType !== 3 && user.userType !== 4) return next(new BadPermissionExpections())
     const warnRes = getRepository(WarnUser)
     let pag = getPagination(request)
     try {
@@ -352,7 +352,7 @@ class UserController implements Controller {
 
   private getBanUser = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     const user = request.user
-    if(user.userType !== 3) return next(new BadPermissionExpections())
+    if(user.userType !== 3 && user.userType !== 4) return next(new BadPermissionExpections())
     const banRes = getRepository(BanUser)
     let pag = getPagination(request)
     try {
@@ -363,7 +363,7 @@ class UserController implements Controller {
           admin : {id : user.id}
         } })
       }else if(user.userType === 4){
-        [data,count] = await banRes.findAndCount({relations:["user" , "admin"] , order:{id:"DESC"} , skip : pag.skip , take : pag.take })
+        [data,count] = await banRes.findAndCount({relations:["user" , "admin"] , order:{id:"DESC"} , skip : pag.skip , take : pag.take , })
       }
       
       response.send({count : count,val : data})
@@ -375,7 +375,7 @@ class UserController implements Controller {
 
   private getUnBanUser = async (request: RequestWithUser, response: Response, next: NextFunction) => {
     const user = request.user
-    if(user.userType !== 3) return next(new BadPermissionExpections())
+    if(user.userType !== 3 && user.userType !== 4) return next(new BadPermissionExpections())
     const unbanRes = getRepository(UnBanUser)
     let pag = getPagination(request)
     try {
