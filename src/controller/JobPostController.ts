@@ -238,7 +238,9 @@ class JobPostController implements Controller {
       let status = request.query["status"]
       const [val, count] = await this.jobPostRespotity.findAndCount({
         where: { user: { id: id } }, relations: ["proposals"]
-        , take: pag.take, skip: pag.skip
+        , take: pag.take, skip: pag.skip , order : {
+          id : "DESC"
+        }
       })
 
       response.send({ count, val })
